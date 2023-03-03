@@ -1,0 +1,37 @@
+.introstyle {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  margin-top: 1rem;
+}
+
+.dogimage {
+  margin: auto;
+  width: 200px;
+}
+
+.doglist {
+  display: grid;
+  grid-template-columns: repeat(3, 120px);
+  gap: 2rem;
+  margin: auto;
+}
+
+.doglistimage {
+  width: 125px;
+  height: 125px;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .introstyle {
+    padding: 0.5rem;
+  }
+  .doglist {
+    display: grid;
+    grid-template-columns: repeat(2, 120px);
+    gap: 1rem;
+    margin: auto;
+  }
+}
