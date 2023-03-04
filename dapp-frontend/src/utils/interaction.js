@@ -26,7 +26,12 @@ export var signedMessage;
 const network = "https://api.devnet.solana.com";
 const connection = new Connection(network);
 
-const programId = new PublicKey("3MNg1iyPzeBqR4P5eSX6EiN5wt94ZhjDWptdDPiSUD48");
+
+
+const programId= new PublicKey(
+	"7gjKW9WJVqdJ2cBMAaHpiPePunZXjXCxzVyJvzcNJG95"
+);
+
 
 const isPhantomInstalled = window.phantom?.solana?.isPhantom;
 
