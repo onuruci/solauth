@@ -44,9 +44,12 @@ function TabPanel(props) {
 }
 
 function App() {
-  const [value, setValue] = useState(0);
+  const [tabValue, setTabValue] = useState(
+    parseInt(localStorage.getItem("current-tab") || 0)
+  );
   const handleChange = (event, newValue) => {
-    setValue(newValue);
+    localStorage.setItem("current-tab", newValue);
+    setTabValue(newValue);
   };
 
   function a11yProps(index) {
@@ -62,7 +65,6 @@ function App() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
   return (
     mounted && (
       <ConnectionProvider endpoint={endpoint}>
@@ -80,7 +82,7 @@ function App() {
                 <Box sx={{ width: "100%", marginLeft: "auto" }}>
                   <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
                     <Tabs
-                      value={value}
+                      value={tabValue}
                       onChange={handleChange}
                       variant="fullWidth"
                       aria-label="basic tabs example"
@@ -97,16 +99,16 @@ function App() {
                       <Tab label="Wardenings" {...a11yProps(3)} />
                     </Tabs>
                   </Box>
-                  <TabPanel value={value} index={0}>
+                  <TabPanel value={tabValue} index={0}>
                     <Intruduction />
                   </TabPanel>
-                  <TabPanel value={value} index={1}>
+                  <TabPanel value={tabValue} index={1}>
                     <Profile />
                   </TabPanel>
-                  <TabPanel value={value} index={2}>
+                  <TabPanel value={tabValue} index={2}>
                     <Wardens />
                   </TabPanel>
-                  <TabPanel value={value} index={3}>
+                  <TabPanel value={tabValue} index={3}>
                     <Wardenings />
                   </TabPanel>
                 </Box>
