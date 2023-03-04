@@ -21,7 +21,7 @@ export var svgContract;
 const network = "https://api.devnet.solana.com";
 const connection = new Connection(network);
 
-const programId = new PublicKey("7gjKW9WJVqdJ2cBMAaHpiPePunZXjXCxzVyJvzcNJG95");
+const programId = new PublicKey("D6LfGP6m4BX9bVAD3kjNipqkMccbkUVAitmtKPydLsoz");
 
 const isPhantomInstalled = window.phantom?.solana?.isPhantom;
 
@@ -250,6 +250,34 @@ export const withdrawFunds = async (address) => {
   console.log("end sendMessage", result);
 };
 
+export const changeWardens = async (address, warden1, warden2, warden3) => {
+  const provider = getProvider();
+  const resp = await provider.connect();
+
+  let wardenChangeRequest = new WardenChangeRequest({ warden1: warden1, warden2: warden2, warden3: warden3 });
+  let data = serialize(WardenChangeRequest.schema, wardenChangeRequest);
+  let data_to_send = new Uint8Array([2, ...data]);
+
+  const instructionTOOurProgram = new TransactionInstruction({
+    keys: [
+      { pubkey: address, isSigner: false, isWritable: true },
+      { pubkey: resp.publicKey, isSigner: true },
+    ],
+    programId: programId,
+    data: data_to_send,
+  });
+
+  const transaction_to_send = await setPayerAndBlockhashTransaction([
+    instructionTOOurProgram,
+  ]);
+
+  const signature = await signAndSendTransaction(transaction_to_send);
+  console.log("Signed");
+  const result = await connection.confirmTransaction(signature);
+  console.log("end sendMessage", result);
+};
+
+
 class WithdrawRequest {
   constructor(properties) {
     Object.keys(properties).forEach((key) => {
@@ -262,6 +290,27 @@ class WithdrawRequest {
       {
         kind: "struct",
         fields: [["amount", "u64"]],
+      },
+    ],
+  ]);
+}
+
+class WardenChangeRequest {
+  constructor(properties) {
+    Object.keys(properties).forEach((key) => {
+      this[key] = properties[key];
+    });
+  }
+  static schema = new Map([
+    [
+      WardenChangeRequest,
+      {
+        kind: "struct",
+        fields: [
+          ["warden1", [32]],
+          ["warden2", [32]],
+          ["warden3", [32]],
+        ],
       },
     ],
   ]);
