@@ -10,6 +10,7 @@ import Intruduction from "./components/IntoductionDoggo";
 import Profile from "./components/Profile";
 import Wardens from "./components/Wardens";
 import Wardenings from "./components/Wardenings";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 import {
   ConnectionProvider,
