@@ -12,12 +12,14 @@ import BeachAccessIcon from "@mui/icons-material/BeachAccess";
 import Divider from "@mui/material/Divider";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import Stack from '@mui/material/Stack';
 import { useConnection } from "@solana/wallet-adapter-react";
 import {
   createCampaign,
   getAllWallets,
   addLamports,
   withdrawFunds,
+  changeWardens,
 } from "../../utils/interaction";
 import bs58 from "bs58";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -39,6 +41,10 @@ const Wardens = () => {
 
     const handleWithdraw = () => {
       withdrawFunds(pdaAddress);
+    };
+
+    const handleChangeWardens = () => {
+      changeWardens(pdaAddress, bs58.decode(warden1), bs58.decode(warden2), bs58.decode("Fmk8NjvEtxnStkUWdc1HakmXoH4HRjrFD79zK96C5a8X"));
     };
 
     useEffect(() => {
@@ -94,12 +100,6 @@ const Wardens = () => {
                   </ListItemAvatar>
                   <ListItemText primary="Warden 1" secondary={warden1} />
                 </ListItem>
-                <TextField
-                  id="outlined-required"
-                  label="New Warden Address"
-                  defaultValue=""
-                />
-                <Button variant="contained">Change</Button>
                 <Divider variant="inset" component="li" />
                 <ListItem>
                   <ListItemAvatar>
@@ -109,12 +109,6 @@ const Wardens = () => {
                   </ListItemAvatar>
                   <ListItemText primary="Warden 2" secondary={warden2} />
                 </ListItem>
-                <TextField
-                  id="outlined-required"
-                  label="New Warden Address"
-                  defaultValue=""
-                />
-                <Button variant="contained">Change</Button>
                 <Divider variant="inset" component="li" />
                 <ListItem>
                   <ListItemAvatar>
@@ -124,13 +118,30 @@ const Wardens = () => {
                   </ListItemAvatar>
                   <ListItemText primary="Warden 3" secondary={warden3} />
                 </ListItem>
+              </List>
+              <div>
+                Change Wardens
+              </div>
+              <Stack spacing={3} sx={{
+                  marginTop: "2rem",
+                }}>
                 <TextField
                   id="outlined-required"
-                  label="New Warden Address"
-                  defaultValue=""
+                  label="New Warden1 Address"
+                  defaultValue={warden1}
                 />
-                <Button variant="contained">Change</Button>
-              </List>
+                <TextField
+                  id="outlined-required"
+                  label="New Warden2 Address"
+                  defaultValue={warden2}
+                />
+                <TextField
+                  id="outlined-required"
+                  label="New Warden3 Address"
+                  defaultValue={warden3}
+                />
+                <Button variant="contained" onClick={() => handleChangeWardens()}>Change Wardens</Button>
+              </Stack>
             </div>
           </div>
         ) : (
