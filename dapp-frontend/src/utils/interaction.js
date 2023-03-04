@@ -141,6 +141,41 @@ export async function createCampaign(publicKey) {
   console.log("end sendMessage", result);
 }
 
+export async function getAllWardens(connection, publicKey) {
+  if (!connection || !publicKey) {
+    return;
+  }
+  let accounts = await connection.getProgramAccounts(programId);
+  let wardenings = [];
+
+  function isWarden(warden1, warden2, warden3) {
+    warden1 = base58.encode(warden1);
+    warden2 = base58.encode(warden2);
+    warden3 = base58.encode(warden3);
+    const strp = publicKey.toString();
+    return warden1 === strp || warden2 === strp || warden3 === strp;
+  }
+  accounts.forEach((program) => {
+    try {
+      let userData = deserialize(
+        AbstractWallet.schema,
+        AbstractWallet,
+        program.account.data
+      );
+      console.log("user data: ", userData);
+      if (isWarden(userData.warden1, userData.warden2, userData.warden3)) {
+        wardenings.push({
+          publicKey: base58.encode(userData.admin),
+          programAddress: program.pubkey,
+        });
+      }
+    } catch (e) {
+      console.error("get all wardens error: ", e);
+    }
+  });
+  return wardenings;
+}
+
 export async function getAllWallets(connection, adminAddress) {
   let accounts = await connection.getProgramAccounts(programId);
   let wallets = [];
@@ -170,27 +205,18 @@ export async function getAllWallets(connection, adminAddress) {
   return wallets;
 }
 
-export const addLamports = async (address) => {
-  const provider = getProvider();
-  const resp = await provider.connect();
+export const addLamports = async (programAddress, publicKey, amount) => {
   const SEED = "Hello" + Math.random().toString();
-  let newAccount = await PublicKey.createWithSeed(
-    resp.publicKey,
-    SEED,
-    programId
-  );
+  let newAccount = await PublicKey.createWithSeed(publicKey, SEED, programId);
 
   const lamports = await connection.getMinimumBalanceForRentExemption(250);
 
-  console.log("LAMPORTS:  ", lamports);
-  console.log(address);
-
   const createDonationControlAccount = SystemProgram.createAccountWithSeed({
-    fromPubkey: resp.publicKey,
-    basePubkey: resp.publicKey,
+    fromPubkey: publicKey,
+    basePubkey: publicKey,
     seed: SEED,
     newAccountPubkey: newAccount,
-    lamports: 100000000,
+    lamports: amount * Web3.LAMPORTS_PER_SOL,
     space: 10,
     programId: programId,
   });
@@ -204,9 +230,9 @@ export const addLamports = async (address) => {
 
   const instructionTOOurProgram = new TransactionInstruction({
     keys: [
-      { pubkey: address, isSigner: false, isWritable: true },
+      { pubkey: programAddress, isSigner: false, isWritable: true },
       { pubkey: newAccount, isSigner: false, isWritable: true },
-      { pubkey: resp.publicKey, isSigner: true },
+      { pubkey: publicKey, isSigner: true },
     ],
     programId: programId,
     data: new Uint8Array([1, 1, 3, 4]),
@@ -223,18 +249,17 @@ export const addLamports = async (address) => {
   console.log("end sendMessage", result);
 };
 
-export const withdrawFunds = async (address) => {
-  const provider = getProvider();
-  const resp = await provider.connect();
-
-  let withdrawRequest = new WithdrawRequest({ amount: 1000000 });
+export const withdrawFunds = async (programAddress, publicKey, amount) => {
+  let withdrawRequest = new WithdrawRequest({
+    amount: amount * Web3.LAMPORTS_PER_SOL,
+  });
   let data = serialize(WithdrawRequest.schema, withdrawRequest);
   let data_to_send = new Uint8Array([4, ...data]);
 
   const instructionTOOurProgram = new TransactionInstruction({
     keys: [
-      { pubkey: address, isSigner: false, isWritable: true },
-      { pubkey: resp.publicKey, isSigner: true },
+      { pubkey: programAddress, isSigner: false, isWritable: true },
+      { pubkey: publicKey, isSigner: true },
     ],
     programId: programId,
     data: data_to_send,
@@ -254,7 +279,11 @@ export const changeWardens = async (address, warden1, warden2, warden3) => {
   const provider = getProvider();
   const resp = await provider.connect();
 
-  let wardenChangeRequest = new WardenChangeRequest({ warden1: warden1, warden2: warden2, warden3: warden3 });
+  let wardenChangeRequest = new WardenChangeRequest({
+    warden1: warden1,
+    warden2: warden2,
+    warden3: warden3,
+  });
   let data = serialize(WardenChangeRequest.schema, wardenChangeRequest);
   let data_to_send = new Uint8Array([2, ...data]);
 
@@ -276,7 +305,6 @@ export const changeWardens = async (address, warden1, warden2, warden3) => {
   const result = await connection.confirmTransaction(signature);
   console.log("end sendMessage", result);
 };
-
 
 class WithdrawRequest {
   constructor(properties) {
