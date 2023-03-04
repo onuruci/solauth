@@ -2,42 +2,38 @@ var express = require("express");
 var router = express.Router();
 const ethers = require("ethers");
 const { hashMessage } = require("@ethersproject/hash");
-const jwt = require('jsonwebtoken');
-const nacl = require('tweetnacl');
-const bs58 = require('bs58');
+const jwt = require("jsonwebtoken");
+const nacl = require("tweetnacl");
+const bs58 = require("bs58");
 
 var UserModel = require("../models/user");
 
 const SECRET_KEY = "secret_key";
 
 function generateAccessToken(user) {
-  return jwt.sign(user, SECRET_KEY, { expiresIn: '18000s' });
+  return jwt.sign(user, SECRET_KEY, { expiresIn: "18000s" });
 }
-
 
 const verifyToken = (req, res, next) => {
   const bearerHeader = req.headers["authorization"];
 
-  if(typeof bearerHeader !== 'undefined')
-  {
-      const bearer = bearerHeader.split(' ');
+  if (typeof bearerHeader !== "undefined") {
+    const bearer = bearerHeader.split(" ");
 
-      const bearerToken = bearer[1];
+    const bearerToken = bearer[1];
 
-      req.token = bearerToken;
+    req.token = bearerToken;
 
-      console.log(req.token);
+    console.log(req.token);
 
-      next();
+    next();
+  } else {
+    res.json({
+      err: 1,
+      message: "Wrong",
+    });
   }
-  else {
-      res.json({
-        err: 1,
-        message: 'Wrong'
-      });
-  }
-}
-
+};
 
 /* GET home page. */
 router.get("/", async function (req, res, next) {
@@ -73,28 +69,25 @@ router.post("/sign-to-auth", async (req, res, next) => {
   const signature = req.body.signature;
   const signMessage = "sign";
 
-  const verified = nacl
-  .sign
-  .detached
-  .verify(
+  const verified = nacl.sign.detached.verify(
     new TextEncoder().encode(signMessage),
     bs58.decode(signature),
     bs58.decode(publicKey)
-  )
-
+  );
 
   if (verified) {
-
+    console.log("verified!!");
     var foundUser = await UserModel.findOne({
       publicKey: publicKey,
     });
 
-    if(foundUser) {
+    if (foundUser) {
+      console.log("user found: ", foundUser);
       res.json({
-          err: 0,
-          message: "Authorized",
-          newUser: foundUser,
-      }); 
+        err: 0,
+        message: "Authorized",
+        newUser: foundUser,
+      });
     } else {
       var newUser = UserModel.create({
         publicKey: publicKey,
@@ -106,13 +99,13 @@ router.post("/sign-to-auth", async (req, res, next) => {
 
       console.log(newUser);
 
-      let a  = (await newUser).save();
+      let a = (await newUser).save();
 
       res.json({
-          err: 0,
-          message: "Authorized",
-          newUser: a,
-      }); 
+        err: 0,
+        message: "Authorized",
+        newUser: a,
+      });
     }
   } else {
     res.json({
@@ -128,42 +121,37 @@ router.post("/update-user", async (req, res, next) => {
   const mail = req.body.mail;
   const phone = req.body.phone;
 
-
   await UserModel.findOneAndDelete({
     publicKey: publicKey,
   });
 
   var newUser = UserModel.create({
+    publicKey: publicKey,
+    avatar: "asd",
+    name: name,
+    mail: mail,
+    phone: phone,
+  });
+
+  let a = (await newUser).save();
+
+  res.json({
+    err: 0,
+    message: "Authorized",
+    newUser: {
       publicKey: publicKey,
       avatar: "asd",
       name: name,
       mail: mail,
       phone: phone,
-    });
-
-  let a  = (await newUser).save();
-
-  res.json({
-      err: 0,
-      message: "Authorized",
-      newUser: {
-        publicKey: publicKey,
-        avatar: "asd",
-        name: name,
-        mail: mail,
-        phone: phone
-      },
-  }); 
-
-
+    },
+  });
 });
-
 
 router.get("/user-auth", async (req, res, next) => {
   const publicKey = req.body.publicKey;
   const signature = req.body.signature;
   const signMessage = "sign";
-
 
   const retrievedAddress = ethers.utils.recoverAddress(
     hashMessage(signMessage),
@@ -179,11 +167,11 @@ router.get("/user-auth", async (req, res, next) => {
     const token = generateAccessToken({ foundUser });
 
     res.json({
-        err: 0,
-        message: "Authorized",
-        newUser: foundUser,
-        token: token
-      });
+      err: 0,
+      message: "Authorized",
+      newUser: foundUser,
+      token: token,
+    });
   } else {
     res.json({
       err: 1,
@@ -194,22 +182,21 @@ router.get("/user-auth", async (req, res, next) => {
 
 router.get("/user-jwt-verify", verifyToken, async (req, res, next) => {
   jwt.verify(req.token, SECRET_KEY, (err, authData) => {
-    if(err){
+    if (err) {
       res.json({
         error: 1,
-        message: 'Something is wrong'
+        message: "Something is wrong",
       });
-    }
-    else{
+    } else {
       res.json({
-        message: 'Succesfull',
+        message: "Succesfull",
         authData: authData,
-        error: 0
-      })
+        error: 0,
+      });
     }
   });
 });
- 
+
 /// Add normal application authentication
 /// Return JWT Token
 /// Let user application check with that JWT Token
