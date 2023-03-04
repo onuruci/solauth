@@ -58,7 +58,7 @@ const Wardens = () => {
         bs58.decode(warden2Ref.current.value),
         bs58.decode(warden3Ref.current.value)
       );
-      window.location.reload();
+      window.location.reload(true);
     };
 
     useEffect(() => {

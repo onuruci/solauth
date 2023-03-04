@@ -54,6 +54,7 @@ export async function setPayerAndBlockhashTransaction(instructions) {
 export async function signAndSendTransaction(transaction) {
   const provider = getProvider();
   const resp = await provider.connect();
+  console.log(transaction);
   try {
     console.log("start signAndSendTransaction");
     let signedTrans = await provider.signTransaction(transaction);
@@ -162,7 +163,6 @@ export async function getAllWardens(connection, publicKey) {
         AbstractWallet,
         program.account.data
       );
-      console.log("user data: ", userData);
       if (isWarden(userData.warden1, userData.warden2, userData.warden3)) {
         wardenings.push({
           publicKey: base58.encode(userData.admin),
@@ -275,6 +275,29 @@ export const withdrawFunds = async (programAddress, publicKey, amount) => {
   console.log("end sendMessage", result);
 };
 
+export async function changeProgramOwner(publicKey, programAddress, newOwner) {
+  const requestObject = new AdminChangeRequest({ new_owner: newOwner });
+  let data = serialize(AdminChangeRequest.schema, requestObject);
+  let data_to_send = new Uint8Array([3, ...data]);
+
+  const instructionToOurProgram = new TransactionInstruction({
+    keys: [
+      { pubkey: programAddress, isWritable: true, isSigner: false },
+      { pubKey: publicKey, isSigner: true },
+    ],
+    programId: programId,
+    data: data_to_send,
+  });
+  const transaction_to_send = await setPayerAndBlockhashTransaction([
+    instructionToOurProgram,
+  ]);
+  console.log("transaction to send: ", transaction_to_send);
+  const signature = await signAndSendTransaction(transaction_to_send);
+  console.log("Signed changeProgramOwner");
+  const result = await connection.confirmTransaction(signature);
+  console.log("confirmed: ", result);
+}
+
 export const changeWardens = async (address, warden1, warden2, warden3) => {
   const provider = getProvider();
   const resp = await provider.connect();
@@ -339,6 +362,23 @@ class WardenChangeRequest {
           ["warden2", [32]],
           ["warden3", [32]],
         ],
+      },
+    ],
+  ]);
+}
+
+class AdminChangeRequest {
+  constructor(properties) {
+    Object.keys(properties).forEach((key) => {
+      this[key] = properties[key];
+    });
+  }
+  static schema = new Map([
+    [
+      AdminChangeRequest,
+      {
+        kind: "struct",
+        fields: [["new_owner", [32]]],
       },
     ],
   ]);

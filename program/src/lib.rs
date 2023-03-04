@@ -11,13 +11,11 @@ use solana_program::{
 
 use borsh::{BorshDeserialize, BorshSerialize};
 
-
 fn process_instruction(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    instruction_data: &[u8], 
+    instruction_data: &[u8],
 ) -> ProgramResult {
-
     if instruction_data.len() == 0 {
         return Err(ProgramError::InvalidInstructionData);
     }
@@ -54,8 +52,6 @@ fn process_instruction(
         );
     }
 
-
-
     msg!("Didn't find the entrypoint required");
     Err(ProgramError::InvalidInstructionData)
 }
@@ -82,7 +78,6 @@ fn create_wallet(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-
     let mut input_data = AbstractWallet::try_from_slice(&instruction_data)
         .expect("Instruction data serialization didn't worked");
 
@@ -98,7 +93,7 @@ fn create_wallet(
         return Err(ProgramError::InsufficientFunds);
     }
 
-    input_data.balance= **writing_account.lamports.borrow() - rent_exemption;
+    input_data.balance = **writing_account.lamports.borrow() - rent_exemption;
 
     input_data.serialize(&mut &mut writing_account.data.borrow_mut()[..])?;
 
@@ -133,17 +128,17 @@ fn send_lamports(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    let mut wallet_data = AbstractWallet::try_from_slice(*wallet_account.data.borrow()).expect("Serialization failed");
+    let mut wallet_data = AbstractWallet::try_from_slice(*wallet_account.data.borrow())
+        .expect("Serialization failed");
 
     wallet_data.balance += **donator_program_account.lamports.borrow();
-    
+
     **wallet_account.try_borrow_mut_lamports()? += **donator_program_account.lamports.borrow();
     **donator_program_account.try_borrow_mut_lamports()? = 0;
 
-    wallet_data.serialize(&mut &mut wallet_account.data.borrow_mut()[..]) ?;
+    wallet_data.serialize(&mut &mut wallet_account.data.borrow_mut()[..])?;
 
     Ok(())
-
 }
 
 fn withdraw(
@@ -175,7 +170,8 @@ fn withdraw(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    let input_data = WithdrawRequest::try_from_slice(&instruction_data).expect("Value serialization failed");
+    let input_data =
+        WithdrawRequest::try_from_slice(&instruction_data).expect("Value serialization failed");
 
     let rent_exemption = Rent::get()?.minimum_balance(writing_account.data_len());
 
@@ -187,14 +183,14 @@ fn withdraw(
     **writing_account.try_borrow_mut_lamports()? -= input_data.amount;
     **creator_account.try_borrow_mut_lamports()? += input_data.amount;
 
-    let mut wallet_data = AbstractWallet::try_from_slice(*writing_account.data.borrow()).expect("Serialization failed");
+    let mut wallet_data = AbstractWallet::try_from_slice(*writing_account.data.borrow())
+        .expect("Serialization failed");
 
     wallet_data.balance -= input_data.amount;
-    wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..]) ?;
+    wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..])?;
 
     Ok(())
 }
-
 
 fn change_wardens(
     program_id: &Pubkey,
@@ -225,19 +221,19 @@ fn change_wardens(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    let input_data = WardenChangeRequest::try_from_slice(&instruction_data).expect("Value serialization failed");
+    let input_data =
+        WardenChangeRequest::try_from_slice(&instruction_data).expect("Value serialization failed");
 
-    let mut wallet_data = AbstractWallet::try_from_slice(*writing_account.data.borrow()).expect("Serialization failed");
+    let mut wallet_data = AbstractWallet::try_from_slice(*writing_account.data.borrow())
+        .expect("Serialization failed");
 
     wallet_data.warden1 = input_data.warden1;
     wallet_data.warden2 = input_data.warden2;
     wallet_data.warden3 = input_data.warden3;
-    wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..]) ?;
+    wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..])?;
 
     Ok(())
 }
-
-
 
 fn change_owner(
     program_id: &Pubkey,
@@ -260,13 +256,18 @@ fn change_owner(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    let input_data = OwnerChangeRequest::try_from_slice(&instruction_data).expect("Value serialization failed");
+    let input_data =
+        OwnerChangeRequest::try_from_slice(&instruction_data).expect("Value serialization failed");
 
-    let mut wallet_data = AbstractWallet::try_from_slice(*writing_account.data.borrow()).expect("Serialization failed");
+    let mut wallet_data = AbstractWallet::try_from_slice(*writing_account.data.borrow())
+        .expect("Serialization failed");
 
-    if *creator_account.key == wallet_data.warden1 || *creator_account.key == wallet_data.warden2 || *creator_account.key == wallet_data.warden3 {
-        wallet_data.admin = input_data.newowner;
-        wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..]) ?;
+    if *creator_account.key == wallet_data.warden1
+        || *creator_account.key == wallet_data.warden2
+        || *creator_account.key == wallet_data.warden3
+    {
+        wallet_data.admin = input_data.new_owner;
+        wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..])?;
     }
 
     Ok(())
@@ -296,7 +297,5 @@ struct WardenChangeRequest {
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 struct OwnerChangeRequest {
-    pub newowner: Pubkey,
+    pub new_owner: Pubkey,
 }
-
-
