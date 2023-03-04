@@ -92,6 +92,7 @@ const Profile = () => {
         <FormControlLabel
           control={<Switch onChange={() => handleSwitch()} />}
           label="Edit Profile"
+          checked={editState}
         />
       </div>
       {editState ? (

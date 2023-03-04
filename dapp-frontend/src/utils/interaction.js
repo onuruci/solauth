@@ -18,20 +18,10 @@ const svgAddress = "0xB19db005C446E59dE8726E06735C5e454956Cc89";
 
 export var svgContract;
 
-export var signer;
-export var provider;
-export var walletAddress;
-export var signedMessage;
-
 const network = "https://api.devnet.solana.com";
 const connection = new Connection(network);
 
-
-
-const programId= new PublicKey(
-	"7gjKW9WJVqdJ2cBMAaHpiPePunZXjXCxzVyJvzcNJG95"
-);
-
+const programId = new PublicKey("7gjKW9WJVqdJ2cBMAaHpiPePunZXjXCxzVyJvzcNJG95");
 
 const isPhantomInstalled = window.phantom?.solana?.isPhantom;
 
@@ -45,42 +35,6 @@ const getProvider = () => {
   }
 
   window.open("https://phantom.app/", "_blank");
-};
-
-export const connectWallet = async (publicKey, wallet) => {
-  try {
-    signer = publicKey;
-    const message = "sign";
-    const encodedMessage = new TextEncoder().encode(message);
-    console.log(publicKey, wallet);
-    signedMessage = await wallet.adapter.signMessage(encodedMessage);
-    console.log(signedMessage);
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-export const getCurrentWalletConnected = async (setAdress) => {
-  if (window.solana) {
-    const provider = getProvider(); // see "Detecting the Provider"
-    try {
-      const resp = await provider.connect();
-      console.log(resp.publicKey.toString());
-
-      setAdress(resp.publicKey.toString());
-      signer = resp.publicKey;
-      const message = "sign";
-      const encodedMessage = new TextEncoder().encode(message);
-      signedMessage = await provider.signMessage(encodedMessage, "utf8");
-    } catch (err) {
-      // { code: 4001, message: 'User rejected the request.' }
-    }
-  } else {
-    return {
-      address: "",
-      status: "Install Metamask",
-    };
-  }
 };
 
 export async function setPayerAndBlockhashTransaction(instructions) {
@@ -199,7 +153,6 @@ export async function getAllWallets(connection, adminAddress) {
       );
       let accountAdminAddress = base58.encode(campData.admin);
       if (adminAddress.toString() === accountAdminAddress) {
-        console.log("hello world");
         wallets.push({
           pubId: e.pubkey,
           description: campData.description,
@@ -209,8 +162,6 @@ export async function getAllWallets(connection, adminAddress) {
           warden2: campData.warden2,
           warden3: campData.warden3,
         });
-      } else {
-        console.log("not hello world");
       }
     } catch (err) {
       console.log(err);
@@ -272,23 +223,6 @@ export const addLamports = async (address) => {
   console.log("end sendMessage", result);
 };
 
-class WithdrawRequest {
-  constructor(properties) {
-    Object.keys(properties).forEach((key) => {
-      this[key] = properties[key];
-    });
-  }
-  static schema = new Map([
-    [
-      WithdrawRequest,
-      {
-        kind: "struct",
-        fields: [["amount", "u64"]],
-      },
-    ],
-  ]);
-}
-
 export const withdrawFunds = async (address) => {
   const provider = getProvider();
   const resp = await provider.connect();
@@ -316,72 +250,19 @@ export const withdrawFunds = async (address) => {
   console.log("end sendMessage", result);
 };
 
-/// Mint
-
-export const mintNFT = async (_color) => {
-  if (svgContract) {
-    await svgContract.mint(_color);
-  }
-};
-
-/// User NFT's
-
-export const getNFTs = async (setArr, setIds) => {
-  let balance = await svgContract.balanceOf(walletAddress);
-  console.log("Balance:  ", balance);
-  let arr = [];
-  let indarr = [];
-
-  for (let i = 0; i < balance; i++) {
-    let ind = parseInt(await svgContract.tokenOfOwnerByIndex(walletAddress, i));
-    indarr.push(ind);
-    let uri = await svgContract.tokenURI(ind);
-    let json = atob(uri.substring(29));
-    let result = await JSON.parse(json);
-    arr.push(result.image);
-  }
-
-  setArr([...arr]);
-  setIds([...indarr]);
-};
-
-export const getURI = async (_id) => {
-  let uri = await svgContract.tokenURI(_id);
-  return uri;
-};
-
-/// Breed
-
-export const breed = async (_id1, _id2) => {
-  await svgContract.breed(_id1, _id2);
-};
-
-export const listenToBreedEvent = async (setSuccess, setWaiting, setNFT) => {
-  if (svgContract) {
-    svgContract.on("CustomMint", async (owner, id) => {
-      if (owner.toString() == walletAddress) {
-        let uri = await svgContract.tokenURI(parseInt(id));
-        let json = atob(uri.substring(29));
-        let result = await JSON.parse(json);
-        setNFT(result.image);
-        setSuccess(true);
-        setWaiting(false);
-      }
+class WithdrawRequest {
+  constructor(properties) {
+    Object.keys(properties).forEach((key) => {
+      this[key] = properties[key];
     });
   }
-};
-
-/// List
-
-export const getAllNFTs = async (setArr) => {
-  let total = await svgContract.totalSupply();
-  let arr = [];
-  for (let i = 0; i < total; i++) {
-    let uri = await svgContract.tokenURI(i);
-    let json = atob(uri.substring(29));
-    let result = await JSON.parse(json);
-    arr.push(result.image);
-  }
-
-  setArr([...arr]);
-};
+  static schema = new Map([
+    [
+      WithdrawRequest,
+      {
+        kind: "struct",
+        fields: [["amount", "u64"]],
+      },
+    ],
+  ]);
+}
