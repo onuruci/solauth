@@ -46,6 +46,12 @@ fn process_instruction(
             accounts,
             &instruction_data[1..instruction_data.len()],
         );
+    } else if instruction_data[0] == 4 {
+        return withdraw(
+            program_id,
+            accounts,
+            &instruction_data[1..instruction_data.len()],
+        );
     }
 
 
@@ -140,6 +146,55 @@ fn send_lamports(
 
 }
 
+fn withdraw(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    instruction_data: &[u8],
+) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+
+    let writing_account = next_account_info(accounts_iter)?;
+
+    let creator_account = next_account_info(accounts_iter)?;
+
+    if !creator_account.is_signer {
+        msg!("creator_account should be signer");
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    if writing_account.owner != program_id {
+        msg!("writing_account isn't owned by program");
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    let wallet_data = AbstractWallet::try_from_slice(*writing_account.data.borrow())
+        .expect("Error deserializing data");
+
+    if wallet_data.admin != *creator_account.key {
+        msg!("only admins can withdraw");
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    let input_data = WithdrawRequest::try_from_slice(&instruction_data).expect("Value serialization failed");
+
+    let rent_exemption = Rent::get()?.minimum_balance(writing_account.data_len());
+
+    if **writing_account.lamports.borrow() - rent_exemption < input_data.amount {
+        msg!("Insufficent balance");
+        return Err(ProgramError::InsufficientFunds);
+    }
+
+    **writing_account.try_borrow_mut_lamports()? -= input_data.amount;
+    **creator_account.try_borrow_mut_lamports()? += input_data.amount;
+
+    let mut wallet_data = AbstractWallet::try_from_slice(*writing_account.data.borrow()).expect("Serialization failed");
+
+    wallet_data.balance -= input_data.amount;
+    wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..]) ?;
+
+    Ok(())
+}
+
 fn change_wardens(
     program_id: &Pubkey, 
     accounts: &[AccountInfo], 
@@ -164,5 +219,10 @@ struct AbstractWallet {
     pub warden2: Pubkey,
     pub warden3: Pubkey,
     pub balance: u64,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+struct WithdrawRequest {
+    pub amount: u64,
 }
 

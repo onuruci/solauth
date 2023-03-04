@@ -24,7 +24,13 @@ export var signedMessage;
 const network = "https://api.devnet.solana.com";
 const connection = new Connection(network);
 
+wallet-adapter
 const programId = new PublicKey("3MNg1iyPzeBqR4P5eSX6EiN5wt94ZhjDWptdDPiSUD48");
+=======
+const programId= new PublicKey(
+	"7gjKW9WJVqdJ2cBMAaHpiPePunZXjXCxzVyJvzcNJG95"
+);
+
 
 const isPhantomInstalled = window.phantom?.solana?.isPhantom;
 
@@ -267,6 +273,64 @@ export const addLamports = async (address) => {
   const result = await connection.confirmTransaction(signature);
   console.log("end sendMessage", result);
 };
+
+
+
+class WithdrawRequest {
+  constructor(properties) {
+    Object.keys(properties).forEach((key) => {
+      this[key] = properties[key];
+    });
+  }
+  static schema = new Map([
+    [
+      WithdrawRequest,
+      {
+        kind: "struct",
+        fields: [["amount", "u64"]],
+      },
+    ],
+  ]);
+}
+
+
+export const withdrawFunds = async (address) => {
+  const provider = getProvider();
+  const resp = await provider.connect();
+
+  let withdrawRequest = new WithdrawRequest({ amount: 1000000 });
+  let data = serialize(WithdrawRequest.schema, withdrawRequest);
+  let data_to_send = new Uint8Array([4, ...data]);
+
+  const instructionTOOurProgram = new TransactionInstruction({
+    keys: [
+      { pubkey: address, isSigner: false, isWritable: true },
+      { pubkey: resp.publicKey, isSigner: true },
+    ],
+    programId: programId,
+    data: data_to_send,
+  });
+
+  const transaction_to_send = await setPayerAndBlockhashTransaction([
+    instructionTOOurProgram,
+  ]);
+
+  const signature = await signAndSendTransaction(transaction_to_send);
+  console.log("Signed");
+  const result = await connection.confirmTransaction(signature);
+  console.log("end sendMessage", result);
+};
+
+
+
+
+
+
+
+
+
+
+
 
 /// Mint
 
