@@ -25,7 +25,7 @@ const network = "https://api.devnet.solana.com";
 const connection = new Connection(network);
 
 const programId= new PublicKey(
-	"J6TDg25zodXKNm6sL3HQyvZ4zdSaCb2YYNR3WfbrpEi2"
+	"3MNg1iyPzeBqR4P5eSX6EiN5wt94ZhjDWptdDPiSUD48"
 );
 
 
@@ -217,6 +217,70 @@ export async function getAllWallets() {
     });
     return wallets;
 }
+
+
+
+
+
+
+export const addLamports = async (address) => {
+  const provider = getProvider();
+  const resp = await provider.connect();
+  const SEED = "Hello" + Math.random().toString();
+  let newAccount = await PublicKey.createWithSeed(
+    resp.publicKey,
+    SEED,
+    programId
+  );
+
+  const lamports = await connection.getMinimumBalanceForRentExemption(250);
+
+  console.log("LAMPORTS:  ", lamports);
+  console.log(address);
+
+  const createDonationControlAccount = SystemProgram.createAccountWithSeed({
+    fromPubkey: resp.publicKey,
+    basePubkey: resp.publicKey,
+    seed: SEED,
+    newAccountPubkey: newAccount,
+    lamports: 100000000,
+    space: 10,
+    programId: programId,
+  });
+
+  // const sendLamportsToPDA = SystemProgram.transfer({
+  //   fromPubkey: wallet.publicKey,
+  //   toPubkey: newAccount,
+  //   lamports: 1000000,
+  //   programId: programId,
+  // });
+
+  const instructionTOOurProgram = new TransactionInstruction({
+    keys: [
+      { pubkey: address, isSigner: false, isWritable: true },
+      { pubkey: newAccount, isSigner: false, isWritable: true },
+      { pubkey: resp.publicKey, isSigner: true },
+    ],
+    programId: programId,
+    data: new Uint8Array([1, 1, 3, 4]),
+  });
+
+  const transaction_to_send = await setPayerAndBlockhashTransaction([
+    createDonationControlAccount,
+    instructionTOOurProgram,
+  ]);
+
+  const signature = await signAndSendTransaction(transaction_to_send);
+  console.log("Signed");
+  const result = await connection.confirmTransaction(signature);
+  console.log("end sendMessage", result);
+};
+
+
+
+
+
+
 
 
 

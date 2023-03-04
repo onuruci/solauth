@@ -104,7 +104,40 @@ fn send_lamports(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+
+    let wallet_account = next_account_info(accounts_iter)?;
+
+    let donator_program_account = next_account_info(accounts_iter)?;
+
+    let donator_account = next_account_info(accounts_iter)?;
+
+    if wallet_account.owner != program_id {
+        msg!("writing_account isn't owned by program");
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    if donator_program_account.owner != program_id {
+        msg!("writing_account isn't owned by program");
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    if !donator_account.is_signer {
+        msg!("donator_account should be signer");
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    let mut wallet_data = AbstractWallet::try_from_slice(*wallet_account.data.borrow()).expect("Serialization failed");
+
+    wallet_data.balance += **donator_program_account.lamports.borrow();
+    
+    **wallet_account.try_borrow_mut_lamports()? += **donator_program_account.lamports.borrow();
+    **donator_program_account.try_borrow_mut_lamports()? = 0;
+
+    wallet_data.serialize(&mut &mut wallet_account.data.borrow_mut()[..]) ?;
+
     Ok(())
+
 }
 
 fn change_wardens(
