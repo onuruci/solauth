@@ -1,11 +1,11 @@
 import { ethers } from "ethers";
 import { decode as atob, encode as btoa } from "base-64";
 import {
-    Connection,
-    SystemProgram,
-    Transaction,
-    PublicKey,
-    TransactionInstruction
+  Connection,
+  SystemProgram,
+  Transaction,
+  PublicKey,
+  TransactionInstruction,
 } from "@solana/web3.js";
 import { deserialize, serialize } from "borsh";
 
@@ -24,15 +24,18 @@ export var signedMessage;
 const network = "https://api.devnet.solana.com";
 const connection = new Connection(network);
 
+wallet-adapter
+const programId = new PublicKey("3MNg1iyPzeBqR4P5eSX6EiN5wt94ZhjDWptdDPiSUD48");
+=======
 const programId= new PublicKey(
 	"7gjKW9WJVqdJ2cBMAaHpiPePunZXjXCxzVyJvzcNJG95"
 );
 
 
-const isPhantomInstalled = window.phantom?.solana?.isPhantom
+const isPhantomInstalled = window.phantom?.solana?.isPhantom;
 
 const getProvider = () => {
-  if ('phantom' in window) {
+  if ("phantom" in window) {
     const provider = window.phantom?.solana;
 
     if (provider?.isPhantom) {
@@ -40,12 +43,26 @@ const getProvider = () => {
     }
   }
 
-  window.open('https://phantom.app/', '_blank');
+  window.open("https://phantom.app/", "_blank");
 };
 
-export const connectWallet = async (setAdress) => {
-  const provider = getProvider(); // see "Detecting the Provider"
+export const connectWallet = async (publicKey, wallet) => {
   try {
+    signer = publicKey;
+    const message = "sign";
+    const encodedMessage = new TextEncoder().encode(message);
+    console.log(publicKey, wallet);
+    signedMessage = await wallet.adapter.signMessage(encodedMessage);
+    console.log(signedMessage);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const getCurrentWalletConnected = async (setAdress) => {
+  if (window.solana) {
+    const provider = getProvider(); // see "Detecting the Provider"
+    try {
       const resp = await provider.connect();
       console.log(resp.publicKey.toString());
 
@@ -54,25 +71,8 @@ export const connectWallet = async (setAdress) => {
       const message = "sign";
       const encodedMessage = new TextEncoder().encode(message);
       signedMessage = await provider.signMessage(encodedMessage, "utf8");
-  } catch (err) {
-      // { code: 4001, message: 'User rejected the request.' }
-  }
-};
-
-export const getCurrentWalletConnected = async (setAdress) => {
-  if (window.solana) {
-    const provider = getProvider(); // see "Detecting the Provider"
-    try {
-        const resp = await provider.connect();
-        console.log(resp.publicKey.toString());
-
-        setAdress(resp.publicKey.toString());
-        signer = resp.publicKey;
-        const message = "sign";
-        const encodedMessage = new TextEncoder().encode(message);
-        signedMessage = await provider.signMessage(encodedMessage, "utf8");
     } catch (err) {
-        // { code: 4001, message: 'User rejected the request.' }
+      // { code: 4001, message: 'User rejected the request.' }
     }
   } else {
     return {
@@ -82,146 +82,144 @@ export const getCurrentWalletConnected = async (setAdress) => {
   }
 };
 
-
 export async function setPayerAndBlockhashTransaction(instructions) {
-    const provider = getProvider();
-    const resp = await provider.connect();
+  const provider = getProvider();
+  const resp = await provider.connect();
 
-    const transaction = new Transaction();
-    instructions.forEach(element => {
-        transaction.add(element);
-    });
-    transaction.feePayer = resp.publicKey;
-    let hash = await connection.getRecentBlockhash();
-    transaction.recentBlockhash = hash.blockhash;
-    return transaction;
+  const transaction = new Transaction();
+  instructions.forEach((element) => {
+    transaction.add(element);
+  });
+  transaction.feePayer = resp.publicKey;
+  let hash = await connection.getRecentBlockhash();
+  transaction.recentBlockhash = hash.blockhash;
+  return transaction;
 }
-
 
 export async function signAndSendTransaction(transaction) {
-    const provider = getProvider();
-    const resp = await provider.connect();
-    try {
-        console.log("start signAndSendTransaction");
-        let signedTrans = await provider.signTransaction(transaction);
-        console.log("signed transaction");
-        let signature = await connection.sendRawTransaction(
-            signedTrans.serialize()
-        );
-        console.log("end signAndSendTransaction");
-        return signature;
-    } catch (err) {
-        console.log("signAndSendTransaction error", err);
-        throw err;
-    }
+  const provider = getProvider();
+  const resp = await provider.connect();
+  try {
+    console.log("start signAndSendTransaction");
+    let signedTrans = await provider.signTransaction(transaction);
+    console.log("signed transaction");
+    let signature = await connection.sendRawTransaction(
+      signedTrans.serialize()
+    );
+    console.log("end signAndSendTransaction");
+    return signature;
+  } catch (err) {
+    console.log("signAndSendTransaction error", err);
+    throw err;
+  }
 }
-
 
 class AbstractWallet {
-    constructor(properties) {
-        Object.keys(properties).forEach((key) => {
-            this[key] = properties[key];
-        });
-    }
-    static schema = new Map([[AbstractWallet,
-        {
-            kind: 'struct',
-            fields: [
-                ['admin', [32]],
-                ['description', 'string'],
-                ['warden1', [32]],
-                ['warden2', [32]],
-                ['warden3', [32]],
-                ['balance', 'u64']]
-        }]]);
+  constructor(properties) {
+    Object.keys(properties).forEach((key) => {
+      this[key] = properties[key];
+    });
+  }
+  static schema = new Map([
+    [
+      AbstractWallet,
+      {
+        kind: "struct",
+        fields: [
+          ["admin", [32]],
+          ["description", "string"],
+          ["warden1", [32]],
+          ["warden2", [32]],
+          ["warden3", [32]],
+          ["balance", "u64"],
+        ],
+      },
+    ],
+  ]);
 }
 
-
-export async function createCampaign(
-) { 
-
+export async function createCampaign() {
   const provider = getProvider();
   const resp = await provider.connect();
 
   const SEED = "abcdef" + Math.random().toString();
   let newAccount = await PublicKey.createWithSeed(
-      resp.publicKey,
-      SEED,
-      programId
+    resp.publicKey,
+    SEED,
+    programId
   );
 
-   let abstractWallet =new AbstractWallet({
-        admin: resp.publicKey.toBuffer(),
-        description: "description",
-        warden1: resp.publicKey.toBuffer(),
-        warden2: resp.publicKey.toBuffer(),
-        warden3: resp.publicKey.toBuffer(),
-        balance: 0,
-    });
+  let abstractWallet = new AbstractWallet({
+    admin: resp.publicKey.toBuffer(),
+    description: "description",
+    warden1: resp.publicKey.toBuffer(),
+    warden2: resp.publicKey.toBuffer(),
+    warden3: resp.publicKey.toBuffer(),
+    balance: 0,
+  });
 
-    let data = serialize(AbstractWallet.schema, abstractWallet);
-    let data_to_send = new Uint8Array([0, ...data]);
+  let data = serialize(AbstractWallet.schema, abstractWallet);
+  let data_to_send = new Uint8Array([0, ...data]);
 
-     const lamports =
-        (await connection.getMinimumBalanceForRentExemption(data.length));
+  const lamports = await connection.getMinimumBalanceForRentExemption(
+    data.length
+  );
 
-    const createProgramAccount = SystemProgram.createAccountWithSeed({
-        fromPubkey: resp.publicKey,
-        basePubkey: resp.publicKey,
-        seed: SEED,
-        newAccountPubkey: newAccount,
-        lamports: lamports,
-        space: data.length,
-        programId: programId,
-    });
+  const createProgramAccount = SystemProgram.createAccountWithSeed({
+    fromPubkey: resp.publicKey,
+    basePubkey: resp.publicKey,
+    seed: SEED,
+    newAccountPubkey: newAccount,
+    lamports: lamports,
+    space: data.length,
+    programId: programId,
+  });
 
-    const instructionTOOurProgram = new TransactionInstruction({
-         keys: [
-            { pubkey: newAccount, isSigner: false, isWritable: true },
-            { pubkey: resp.publicKey, isSigner: true, isWritable: false },
-        ],
-        programId: programId,
-        data: data_to_send,
-    });
+  const instructionTOOurProgram = new TransactionInstruction({
+    keys: [
+      { pubkey: newAccount, isSigner: false, isWritable: true },
+      { pubkey: resp.publicKey, isSigner: true, isWritable: false },
+    ],
+    programId: programId,
+    data: data_to_send,
+  });
 
-    const transact = await setPayerAndBlockhashTransaction(
-        [createProgramAccount,
-            instructionTOOurProgram]
-    );
-    const signature = await signAndSendTransaction(transact);
+  const transact = await setPayerAndBlockhashTransaction([
+    createProgramAccount,
+    instructionTOOurProgram,
+  ]);
+  const signature = await signAndSendTransaction(transact);
 
-    const result = await connection.confirmTransaction(signature);
-    console.log("end sendMessage", result);
-
+  const result = await connection.confirmTransaction(signature);
+  console.log("end sendMessage", result);
 }
 
 export async function getAllWallets() {
-    const provider = getProvider();
-    let accounts = await connection.getProgramAccounts(programId);
-    let wallets = []
-    accounts.forEach((e) => {
-        try {
-            let campData = deserialize(AbstractWallet.schema, AbstractWallet, e.account.data);
-            wallets.push({
-                pubId: e.pubkey,
-                description: campData.description,
-                balance: campData.balance,
-                admin: campData.admin,
-                warden1: campData.warden1,
-                warden2: campData.warden2,
-                warden3: campData.warden3,
-            });
-        } catch (err) {
-            console.log(err);
-        }
-    });
-    return wallets;
+  const provider = getProvider();
+  let accounts = await connection.getProgramAccounts(programId);
+  let wallets = [];
+  accounts.forEach((e) => {
+    try {
+      let campData = deserialize(
+        AbstractWallet.schema,
+        AbstractWallet,
+        e.account.data
+      );
+      wallets.push({
+        pubId: e.pubkey,
+        description: campData.description,
+        balance: campData.balance,
+        admin: campData.admin,
+        warden1: campData.warden1,
+        warden2: campData.warden2,
+        warden3: campData.warden3,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  return wallets;
 }
-
-
-
-
-
 
 export const addLamports = async (address) => {
   const provider = getProvider();
@@ -277,6 +275,7 @@ export const addLamports = async (address) => {
 };
 
 
+
 class WithdrawRequest {
   constructor(properties) {
     Object.keys(properties).forEach((key) => {
@@ -321,6 +320,7 @@ export const withdrawFunds = async (address) => {
   const result = await connection.confirmTransaction(signature);
   console.log("end sendMessage", result);
 };
+
 
 
 
