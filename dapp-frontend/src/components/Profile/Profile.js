@@ -45,6 +45,7 @@ const Profile = () => {
       const encodedMessage = new TextEncoder().encode(message);
       const signature = await signMessage(encodedMessage);
       setSignature(signature);
+      console.log("signature: ", signature);
     }
     sign();
   }, [publicKey]);

@@ -8,6 +8,8 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { deserialize, serialize } from "borsh";
+import * as Web3 from "@solana/web3.js";
+import { base58 } from "ethers/lib/utils";
 
 const RPC_URL = "https://api.avax-test.network/ext/bc/C/rpc";
 const SVG_ABI = require("./SVGABI.json");
@@ -24,13 +26,7 @@ export var signedMessage;
 const network = "https://api.devnet.solana.com";
 const connection = new Connection(network);
 
-wallet-adapter
 const programId = new PublicKey("3MNg1iyPzeBqR4P5eSX6EiN5wt94ZhjDWptdDPiSUD48");
-=======
-const programId= new PublicKey(
-	"7gjKW9WJVqdJ2cBMAaHpiPePunZXjXCxzVyJvzcNJG95"
-);
-
 
 const isPhantomInstalled = window.phantom?.solana?.isPhantom;
 
@@ -138,23 +134,16 @@ class AbstractWallet {
   ]);
 }
 
-export async function createCampaign() {
-  const provider = getProvider();
-  const resp = await provider.connect();
-
+export async function createCampaign(publicKey) {
   const SEED = "abcdef" + Math.random().toString();
-  let newAccount = await PublicKey.createWithSeed(
-    resp.publicKey,
-    SEED,
-    programId
-  );
+  let newAccount = await PublicKey.createWithSeed(publicKey, SEED, programId);
 
   let abstractWallet = new AbstractWallet({
-    admin: resp.publicKey.toBuffer(),
+    admin: publicKey.toBuffer(),
     description: "description",
-    warden1: resp.publicKey.toBuffer(),
-    warden2: resp.publicKey.toBuffer(),
-    warden3: resp.publicKey.toBuffer(),
+    warden1: publicKey.toBuffer(),
+    warden2: publicKey.toBuffer(),
+    warden3: publicKey.toBuffer(),
     balance: 0,
   });
 
@@ -166,8 +155,8 @@ export async function createCampaign() {
   );
 
   const createProgramAccount = SystemProgram.createAccountWithSeed({
-    fromPubkey: resp.publicKey,
-    basePubkey: resp.publicKey,
+    fromPubkey: publicKey,
+    basePubkey: publicKey,
     seed: SEED,
     newAccountPubkey: newAccount,
     lamports: lamports,
@@ -178,7 +167,7 @@ export async function createCampaign() {
   const instructionTOOurProgram = new TransactionInstruction({
     keys: [
       { pubkey: newAccount, isSigner: false, isWritable: true },
-      { pubkey: resp.publicKey, isSigner: true, isWritable: false },
+      { pubkey: publicKey, isSigner: true, isWritable: false },
     ],
     programId: programId,
     data: data_to_send,
@@ -189,13 +178,11 @@ export async function createCampaign() {
     instructionTOOurProgram,
   ]);
   const signature = await signAndSendTransaction(transact);
-
   const result = await connection.confirmTransaction(signature);
   console.log("end sendMessage", result);
 }
 
-export async function getAllWallets() {
-  const provider = getProvider();
+export async function getAllWallets(connection, adminAddress) {
   let accounts = await connection.getProgramAccounts(programId);
   let wallets = [];
   accounts.forEach((e) => {
@@ -205,15 +192,21 @@ export async function getAllWallets() {
         AbstractWallet,
         e.account.data
       );
-      wallets.push({
-        pubId: e.pubkey,
-        description: campData.description,
-        balance: campData.balance,
-        admin: campData.admin,
-        warden1: campData.warden1,
-        warden2: campData.warden2,
-        warden3: campData.warden3,
-      });
+      let accountAdminAddress = base58.encode(campData.admin);
+      if (adminAddress.toString() === accountAdminAddress) {
+        console.log("hello world");
+        wallets.push({
+          pubId: e.pubkey,
+          description: campData.description,
+          balance: campData.balance,
+          admin: campData.admin,
+          warden1: campData.warden1,
+          warden2: campData.warden2,
+          warden3: campData.warden3,
+        });
+      } else {
+        console.log("not hello world");
+      }
     } catch (err) {
       console.log(err);
     }
@@ -274,8 +267,6 @@ export const addLamports = async (address) => {
   console.log("end sendMessage", result);
 };
 
-
-
 class WithdrawRequest {
   constructor(properties) {
     Object.keys(properties).forEach((key) => {
@@ -292,7 +283,6 @@ class WithdrawRequest {
     ],
   ]);
 }
-
 
 export const withdrawFunds = async (address) => {
   const provider = getProvider();
@@ -320,17 +310,6 @@ export const withdrawFunds = async (address) => {
   const result = await connection.confirmTransaction(signature);
   console.log("end sendMessage", result);
 };
-
-
-
-
-
-
-
-
-
-
-
 
 /// Mint
 
