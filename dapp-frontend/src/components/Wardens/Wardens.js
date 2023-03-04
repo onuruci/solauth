@@ -13,7 +13,7 @@ import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 
-import { createCampaign, getAllWallets, signer, addLamports } from "../../utils/interaction";
+import { createCampaign, getAllWallets, signer, addLamports, withdrawFunds } from "../../utils/interaction";
 import bs58 from 'bs58';
 
 
@@ -29,6 +29,10 @@ const Wardens = () => {{
   const handleAddLamports = () => {
     addLamports(pdaAddress);
   };
+
+  const handleWithdraw = () => {
+    withdrawFunds(pdaAddress);
+  }
 
   useEffect(() => {
     if(signer) {
@@ -59,7 +63,8 @@ const Wardens = () => {{
         walletExist ? <div>
           <div>
         Balance: {balance} Lamports
-        <button onClick={() => handleAddLamports()}> ADD Lamports</button>
+        <Button variant="contained" onClick={() => handleAddLamports()}>Add Lamports</Button>
+        <Button variant="contained" onClick={() => handleWithdraw()}>withdrawFunds</Button>
       </div>
       <div>
         My Wardens
