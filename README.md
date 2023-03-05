@@ -19,6 +19,10 @@ npm install solauth
 
 # Usage
 
+First you should sign up to our service. It will be live very soon, you can try it from your localhost for now.
+
+Then create a WalletHandler that authenticate you with signature verification. Example in the below!
+
 ```javascript
 
 import React from "react";
