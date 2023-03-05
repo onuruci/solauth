@@ -22,16 +22,16 @@ import { useState, useEffect, useContext, useMemo } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import axios from "axios";
 
-# Your endpoint and the sign hash that you choose. 
-# Sign hash is important because it does not display your private key.
+// Your endpoint and the sign hash that you choose. 
+// Sign hash is important because it does not display your private key.
 import { HASH, ENDPOINT } from "./utils/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-# encoder to change string to base58, necessary for the backend, will be changed in the future
+// encoder to change string to base58, necessary for the backend, will be changed in the future
 import bs58 from "bs58";
 
 
-# Basic wallet handler with solana wallet adapter
+// Basic wallet handler with solana wallet adapter
 const WalletHandler = () => {
   const { publicKey, connected, wallet, signMessage } = useWallet();
   const [signature, setSignature] = useState(null);
@@ -43,6 +43,8 @@ const WalletHandler = () => {
       const signature = await signMessage(encodedMessage);
       setSignature(signature);
     }
+
+    // If you are connected to wallet and doesn't have signature, get the signature.
     if (!signature && connected) {
       getSignature();
     }
@@ -60,10 +62,14 @@ const WalletHandler = () => {
       window.location.reload();
     }
     const jwt = localStorage.getItem("jwt-auth");
+
+    // If you have signature, and doesn't have json web token then authenticate yourself
     if (signature && !jwt) {
       userAuth();
     }
   }, [signature]);
+
+  // Solana wallet adapter ui connect button.
   return (
     <div className="buttonlayout">
       <WalletMultiButton></WalletMultiButton>
