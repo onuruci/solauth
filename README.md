@@ -1,4 +1,4 @@
-## SolAuth
+# SolAuth
 
 SolAuth is an authentication service that allows external web applications to authenticate with their wallets.
 
@@ -6,10 +6,10 @@ Moreover, it provides a one-place sign in platform that eases the pain of signin
 
  Last but not the least, it provides a abstract wallet that you can send and withdraw money. 
  
- # Most importantly, if you were to lose your private key, your wardens you select while signing up to our service can change the admin of your abstract wallet and save your money!
+ ## Most importantly, if you were to lose your private key, your wardens you select while signing up to our service can change the admin of your abstract wallet and save your money!
 
 
-## Installation
+# Installation
 
 Use the package manager [npm](https://www.npmjs.com/) to install solauth. It will be available in the future, we are working on the documentations.
 
@@ -17,7 +17,7 @@ Use the package manager [npm](https://www.npmjs.com/) to install solauth. It wil
 npm install solauth
 ```
 
-## Usage
+# Usage
 
 ```javascript
 
@@ -86,13 +86,13 @@ export default WalletHandler;
 
 ```
 
-## Contributing
+# Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
 to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 
-## License
+# License
 
 [MIT](https://choosealicense.com/licenses/mit/)
