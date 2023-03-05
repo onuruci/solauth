@@ -47,7 +47,9 @@ const Profile = () => {
       setSignature(signature);
       console.log("signature: ", signature);
     }
-    sign();
+    if (connected) {
+      sign();
+    }
   }, [publicKey]);
 
   const handleChangeSubmit = async () => {
