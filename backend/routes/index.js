@@ -16,7 +16,6 @@ function generateAccessToken(user) {
 
 const verifyToken = (req, res, next) => {
   const bearerHeader = req.headers["authorization"];
-
   if (typeof bearerHeader !== "undefined") {
     const bearer = bearerHeader.split(" ");
 
@@ -120,20 +119,14 @@ router.post("/update-user", async (req, res, next) => {
   const name = req.body.name;
   const mail = req.body.mail;
   const phone = req.body.phone;
+  const update = { name: name, mail: mail, phone: phone };
 
-  await UserModel.findOneAndDelete({
-    publicKey: publicKey,
-  });
-
-  var newUser = UserModel.create({
-    publicKey: publicKey,
-    avatar: "asd",
-    name: name,
-    mail: mail,
-    phone: phone,
-  });
-
-  let a = (await newUser).save();
+  await UserModel.findOneAndUpdate(
+    {
+      publicKey: publicKey,
+    },
+    update
+  );
 
   res.json({
     err: 0,
@@ -148,22 +141,22 @@ router.post("/update-user", async (req, res, next) => {
   });
 });
 
-router.get("/user-auth", async (req, res, next) => {
+router.post("/user-auth", async (req, res, next) => {
   const publicKey = req.body.publicKey;
   const signature = req.body.signature;
   const signMessage = "sign";
 
-  const retrievedAddress = ethers.utils.recoverAddress(
-    hashMessage(signMessage),
-    signature
+  const verified = nacl.sign.detached.verify(
+    new TextEncoder().encode(signMessage),
+    bs58.decode(signature),
+    bs58.decode(publicKey)
   );
 
-  if (retrievedAddress === publicKey) {
+  if (verified) {
     var foundUser = await UserModel.findOne({
       publicKey: publicKey,
     });
 
-    console.log(foundUser);
     const token = generateAccessToken({ foundUser });
 
     res.json({
