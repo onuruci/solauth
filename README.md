@@ -1,7 +1,12 @@
-# SolAuth
+## SolAuth
 
 SolAuth is an authentication service that allows external web applications to authenticate with their wallets.
-Moreover, it provides a one-place sign in platform that eases the pain of signing in every time you visit a new website. Last but not the least, it provides a abstract wallet that you can send and withdraw money. Most importantly, if you were to lose your private key, your wardens you select while signing up to our service can change the admin of your abstract wallet and save your money!
+
+Moreover, it provides a one-place sign in platform that eases the pain of signing in every time you visit a new website.
+
+ Last but not the least, it provides a abstract wallet that you can send and withdraw money. 
+ 
+ # Most importantly, if you were to lose your private key, your wardens you select while signing up to our service can change the admin of your abstract wallet and save your money!
 
 
 ## Installation
