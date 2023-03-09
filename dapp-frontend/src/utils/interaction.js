@@ -21,7 +21,7 @@ export var svgContract;
 const network = "https://api.devnet.solana.com";
 const connection = new Connection(network);
 
-const programId = new PublicKey("D6LfGP6m4BX9bVAD3kjNipqkMccbkUVAitmtKPydLsoz");
+const programId = new PublicKey("2pt1iULn3KBsPqJ2NXg75xWSbj8awft3HFGK72VT8hUK");
 
 const isPhantomInstalled = window.phantom?.solana?.isPhantom;
 
@@ -54,7 +54,7 @@ export async function setPayerAndBlockhashTransaction(instructions) {
 export async function signAndSendTransaction(transaction) {
   const provider = getProvider();
   const resp = await provider.connect();
-  console.log(transaction);
+
   try {
     console.log("start signAndSendTransaction");
     let signedTrans = await provider.signTransaction(transaction);
@@ -166,7 +166,7 @@ export async function getAllWardens(connection, publicKey) {
       if (isWarden(userData.warden1, userData.warden2, userData.warden3)) {
         wardenings.push({
           publicKey: base58.encode(userData.admin),
-          programAddress: program.pubkey,
+          pubId: program.pubkey,
         });
       }
     } catch (e) {
@@ -275,15 +275,15 @@ export const withdrawFunds = async (programAddress, publicKey, amount) => {
   console.log("end sendMessage", result);
 };
 
-export async function changeProgramOwner(publicKey, programAddress, newOwner) {
-  const requestObject = new AdminChangeRequest({ new_owner: newOwner });
+export const changeProgramOwner = async (publicKey, programAddress, newOwner) => {
+  let requestObject = new AdminChangeRequest({ newowner: newOwner });
   let data = serialize(AdminChangeRequest.schema, requestObject);
   let data_to_send = new Uint8Array([3, ...data]);
 
   const instructionToOurProgram = new TransactionInstruction({
     keys: [
-      { pubkey: programAddress, isWritable: true, isSigner: false },
-      { pubKey: publicKey, isSigner: true },
+      { pubkey: programAddress, isSigner: false, isWritable: true },
+      { pubkey: publicKey, isSigner: true },
     ],
     programId: programId,
     data: data_to_send,
@@ -291,7 +291,7 @@ export async function changeProgramOwner(publicKey, programAddress, newOwner) {
   const transaction_to_send = await setPayerAndBlockhashTransaction([
     instructionToOurProgram,
   ]);
-  console.log("transaction to send: ", transaction_to_send);
+
   const signature = await signAndSendTransaction(transaction_to_send);
   console.log("Signed changeProgramOwner");
   const result = await connection.confirmTransaction(signature);
@@ -378,7 +378,9 @@ class AdminChangeRequest {
       AdminChangeRequest,
       {
         kind: "struct",
-        fields: [["new_owner", [32]]],
+        fields: [
+          ["newowner", [32]],
+        ],
       },
     ],
   ]);

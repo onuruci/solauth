@@ -263,10 +263,20 @@ fn change_owner(
         .expect("Serialization failed");
 
     if *creator_account.key == wallet_data.warden1
-        || *creator_account.key == wallet_data.warden2
-        || *creator_account.key == wallet_data.warden3
     {
-        wallet_data.admin = input_data.new_owner;
+        wallet_data.admin = input_data.newowner;
+        wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..])?;
+    }
+
+    if *creator_account.key == wallet_data.warden2
+    {
+        wallet_data.admin = input_data.newowner;
+        wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..])?;
+    }
+
+    if *creator_account.key == wallet_data.warden3
+    {
+        wallet_data.admin = input_data.newowner;
         wallet_data.serialize(&mut &mut writing_account.data.borrow_mut()[..])?;
     }
 
@@ -297,5 +307,5 @@ struct WardenChangeRequest {
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 struct OwnerChangeRequest {
-    pub new_owner: Pubkey,
+    pub newowner: Pubkey,
 }
