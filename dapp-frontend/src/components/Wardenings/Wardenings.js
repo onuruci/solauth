@@ -27,12 +27,13 @@ const Wardenings = () => {
     }
     getWardens();
   }, [publicKey]);
+
   async function handleChangeOwner(index) {
     const newOwner = document.getElementById(`new-owner-${index}`).value;
-    console.log(newOwner);
+
     await changeProgramOwner(
       publicKey,
-      wardenings[index].programAddress,
+      wardenings[index].pubId,
       bs58.decode(newOwner)
     );
     window.location.reload();
@@ -53,7 +54,7 @@ const Wardenings = () => {
                 </ListItemAvatar>
                 <ListItemText
                   primary={`Wallet Owner: ${warden?.publicKey}`}
-                  secondary={`Wallet Address: ${warden?.programAddress.toString()}`}
+                  secondary={`Wallet Address: ${warden?.pubId.toString()}`}
                 />
               </ListItem>
               <div className="flex flex-row gap-8 ml-[4.5rem]">
