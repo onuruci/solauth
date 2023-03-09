@@ -15,7 +15,9 @@ function generateAccessToken(user) {
 }
 
 const verifyToken = (req, res, next) => {
+  console.log("what the fuck is going on");
   const bearerHeader = req.headers["authorization"];
+  console.log("hello wolegçkkjrehgjrkeg");
   if (typeof bearerHeader !== "undefined") {
     const bearer = bearerHeader.split(" ");
 
@@ -75,41 +77,25 @@ router.post("/sign-to-auth", async (req, res, next) => {
   );
 
   if (verified) {
-    console.log("verified!!");
-    var foundUser = await UserModel.findOne({
+    let newUser = UserModel.create({
       publicKey: publicKey,
+      avatar: "temp-avatar",
+      name: req.body.name,
+      mail: req.body.mail,
+      phone: req.body.phone,
     });
 
-    if (foundUser) {
-      console.log("user found: ", foundUser);
-      res.json({
-        err: 0,
-        message: "Authorized",
-        newUser: foundUser,
-      });
-    } else {
-      var newUser = UserModel.create({
-        publicKey: publicKey,
-        avatar: "asd",
-        name: "",
-        mail: "",
-        phone: "",
-      });
+    let response = (await newUser).save();
 
-      console.log(newUser);
-
-      let a = (await newUser).save();
-
-      res.json({
-        err: 0,
-        message: "Authorized",
-        newUser: a,
-      });
-    }
+    res.json({
+      err: 0,
+      message: "Authorized",
+      newUser: response,
+    });
   } else {
     res.json({
       err: 1,
-      message: "Authentication failed",
+      message: "User cannot be verified",
     });
   }
 });
@@ -174,11 +160,14 @@ router.post("/user-auth", async (req, res, next) => {
 });
 
 router.get("/user-jwt-verify", verifyToken, async (req, res, next) => {
+  console.log("welcome to the world");
   jwt.verify(req.token, SECRET_KEY, (err, authData) => {
+    console.log("auth data: ", authData);
     if (err) {
+      console.error(err);
       res.json({
         error: 1,
-        message: "Something is wrong",
+        message: "JWT is expired",
       });
     } else {
       res.json({
@@ -188,6 +177,24 @@ router.get("/user-jwt-verify", verifyToken, async (req, res, next) => {
       });
     }
   });
+});
+
+//check if user exists
+router.get("/:publicKey", async (req, res, next) => {
+  const publicKey = req.params["publicKey"];
+  const user = await UserModel.findOne({
+    publicKey: publicKey,
+  });
+  if (user) {
+    res.json({
+      isExist: true,
+      user: user,
+    });
+  } else {
+    res.json({
+      isExist: false,
+    });
+  }
 });
 
 /// Add normal application authentication

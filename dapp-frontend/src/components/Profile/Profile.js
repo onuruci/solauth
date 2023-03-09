@@ -1,21 +1,26 @@
-import React, { useMemo, useRef } from "react";
-import { useState, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect, useReducer } from "react";
 
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Switch from "@mui/material/Switch";
+import {
+  Input,
+  InputLabel,
+  FormHelperText,
+  FormControl,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Avatar,
+  Divider,
+  Button,
+  FormControlLabel,
+  Box,
+  TextField,
+  Switch,
+} from "@mui/material";
 
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
-import Avatar from "@mui/material/Avatar";
 import ImageIcon from "@mui/icons-material/Image";
 import WorkIcon from "@mui/icons-material/Work";
 import BeachAccessIcon from "@mui/icons-material/BeachAccess";
-import Divider from "@mui/material/Divider";
-import Button from "@mui/material/Button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
 import ENDPOINT from "../../utils/endpoint";
@@ -23,13 +28,39 @@ import ENDPOINT from "../../utils/endpoint";
 import axios from "axios";
 import { color } from "@mui/system";
 
+function signInfoReducer(state, action) {
+  switch (action.type) {
+    case "changed_name": {
+      return {
+        ...state,
+        name: action.nextName,
+      };
+    }
+    case "changed_mail": {
+      return {
+        ...state,
+        mail: action.nextMail,
+      };
+    }
+    case "changed_phone": {
+      return {
+        ...state,
+        phone: action.nextPhone,
+      };
+    }
+  }
+  throw Error("Unknown action: " + action.type);
+}
+
 const Profile = () => {
   const { publicKey, connected, wallet, signMessage } = useWallet();
   const [editState, setEdit] = useState(false);
-  const [name, setName] = useState("");
-  const [mail, setMail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [signature, setSignature] = useState(null);
+  const [user, setUser] = useState(null);
+  const [signInfo, signDispatch] = useReducer(signInfoReducer, {
+    name: "",
+    mail: "",
+    phone: "",
+  });
 
   const nameInputRef = useRef();
   const mailInputRef = useRef();
@@ -40,19 +71,39 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    async function sign() {
-      const message = "sign";
-      const encodedMessage = new TextEncoder().encode(message);
-      const signature = await signMessage(encodedMessage);
-      setSignature(signature);
-      console.log("signature: ", signature);
+    async function checkUser() {
+      let response = await axios.get(`${ENDPOINT}${publicKey}`);
+      // check if user already signed
+      // if user is signed, just set user
+      if (response.data.isExist) {
+        setUser(response.data.user);
+      }
+      // if user is not signed, render a button that allows user to sign.
     }
     if (connected) {
-      sign();
+      checkUser();
     }
   }, [publicKey]);
 
+  async function handleSignUp() {
+    const message = "sign";
+    const encodedMessage = new TextEncoder().encode(message);
+    const signature = await signMessage(encodedMessage);
+
+    let form = {
+      publicKey: publicKey.toBase58(),
+      signature: bs58.encode(signature),
+      ...signInfo,
+    };
+    let res = await axios.post(ENDPOINT + "sign-to-auth", form);
+    console.log(res.data);
+  }
+
   const handleChangeSubmit = async () => {
+    const message = "sign";
+    const encodedMessage = new TextEncoder().encode(message);
+    const signature = await signMessage(encodedMessage);
+
     if (signature) {
       let form = {
         publicKey: publicKey.toBase58(),
@@ -66,28 +117,7 @@ const Profile = () => {
     setEdit(false);
   };
 
-  useEffect(() => {
-    if (signature) {
-      const getCurrentUser = async () => {
-        let form = {
-          publicKey: publicKey.toBase58(),
-          signature: bs58.encode(signature),
-        };
-
-        let res = await axios.post(ENDPOINT + "sign-to-auth", form);
-        console.log(res.data);
-        setName(res.data.newUser.name);
-        setMail(res.data.newUser.mail);
-        setPhone(res.data.newUser.phone);
-      };
-
-      getCurrentUser();
-    } else {
-      return;
-    }
-  }, [signature, editState]);
-
-  return (
+  return user ? (
     <code className="introstyle">
       Profile
       <div>
@@ -110,7 +140,7 @@ const Profile = () => {
             <TextField
               id="outlined-required"
               label="Name"
-              defaultValue={name}
+              defaultValue={user?.name}
               inputRef={nameInputRef}
               type="text"
             />
@@ -119,12 +149,12 @@ const Profile = () => {
               label="Mail"
               inputRef={mailInputRef}
               type="email"
-              defaultValue={mail}
+              defaultValue={user?.mail}
             />
             <TextField
               id="outlined-required"
               label="Phone"
-              defaultValue={phone}
+              defaultValue={user?.phone}
               inputRef={phoneInputRef}
               type="tel"
             />
@@ -157,7 +187,7 @@ const Profile = () => {
                   <ImageIcon />
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText primary="Name" secondary={name} />
+              <ListItemText primary="Name" secondary={user?.name} />
             </ListItem>
             <Divider variant="inset" component="li" />
             <ListItem>
@@ -166,7 +196,7 @@ const Profile = () => {
                   <WorkIcon />
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText primary="Mail" secondary={mail} />
+              <ListItemText primary="Mail" secondary={user?.mail} />
             </ListItem>
             <Divider variant="inset" component="li" />
             <ListItem>
@@ -175,12 +205,59 @@ const Profile = () => {
                   <BeachAccessIcon />
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText primary="Phone" secondary={phone} />
+              <ListItemText primary="Phone" secondary={user?.phone} />
             </ListItem>
           </List>
         </div>
       )}
     </code>
+  ) : (
+    <div className="flex flex-row items-center justify-center">
+      <FormControl className="flex flex-col gap-4">
+        <TextField
+          onChange={(e) =>
+            signDispatch({
+              type: "changed_name",
+              nextName: e.target.value,
+            })
+          }
+          id="sign-name"
+          label="Name"
+          variant="outlined"
+        />
+        <TextField
+          onChange={(e) =>
+            signDispatch({
+              type: "changed_mail",
+              nextMail: e.target.value,
+            })
+          }
+          id="sign-mail"
+          label="Mail"
+          variant="outlined"
+        />
+        <TextField
+          onChange={(e) =>
+            signDispatch({
+              type: "changed_phone",
+              nextPhone: e.target.value,
+            })
+          }
+          id="sign-phone"
+          label="Phone"
+          variant="outlined"
+        />
+        <Button
+          type="submit"
+          onClick={handleSignUp}
+          size="large"
+          className="mt-80"
+          variant="contained"
+        >
+          Sign to Solauth
+        </Button>
+      </FormControl>
+    </div>
   );
 };
 
