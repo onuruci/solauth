@@ -22,21 +22,6 @@ global.Buffer = global.Buffer || require("buffer").Buffer;
 function App() {
   const [value, setValue] = useState(0);
   const [currentProfile, setCurrentProfile] = useState(null);
-  const [jwt, setJwt] = useState(localStorage.getItem("jwt-auth"));
-  useEffect(() => {
-    const config = {
-      headers: { authorization: `Bearer ${jwt}` },
-    };
-    async function fetchJwt() {
-      const response = await axios.get(`${ENDPOINT}/user-jwt-verify`, config);
-      setCurrentProfile(response.data.authData.foundUser);
-      console.log(response.data.authData.foundUser);
-    }
-
-    if (jwt) {
-      fetchJwt();
-    }
-  }, []);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -64,7 +49,6 @@ function App() {
             {!currentProfile ? (
               <div>
                 <div className="w-full">
-                  <div>.</div>
                   <div className="w-3/5 mx-auto mt-20">
                     <div className="flex items-center">
                       <div className="">
@@ -73,7 +57,7 @@ function App() {
                       </div>
                       <div className="loginmodal">
                         <img src={input1} />
-                        <WalletHandler />
+                        <WalletHandler setCurrentProfile={setCurrentProfile} />
                       </div>
                     </div>
                   </div>
