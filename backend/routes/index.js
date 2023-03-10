@@ -5,19 +5,48 @@ const { hashMessage } = require("@ethersproject/hash");
 const jwt = require("jsonwebtoken");
 const nacl = require("tweetnacl");
 const bs58 = require("bs58");
-
+const multer = require("multer");
+const dotenv = require("dotenv");
+const crypto = require("crypto");
+const sharp = require("sharp");
 var UserModel = require("../models/user");
 
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+} = require("@aws-sdk/client-s3");
+
+dotenv.config();
+
+const BUCKET_NAME = process.env.BUCKET_NAME;
+const AWS_BUCKET_REGION = process.env.AWS_BUCKET_REGION;
+const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 const SECRET_KEY = "secret_key";
+
+const s3 = new S3Client({
+  credentials: {
+    accessKeyId: AWS_ACCESS_KEY,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  },
+  region: AWS_BUCKET_REGION,
+});
+
+const randomImageName = (bytes = 32) =>
+  crypto.randomBytes(bytes).toString("hex");
 
 function generateAccessToken(user) {
   return jwt.sign(user, SECRET_KEY, { expiresIn: "18000s" });
 }
 
 const verifyToken = (req, res, next) => {
-  console.log("what the fuck is going on");
   const bearerHeader = req.headers["authorization"];
-  console.log("hello wolegçkkjrehgjrkeg");
   if (typeof bearerHeader !== "undefined") {
     const bearer = bearerHeader.split(" ");
 
@@ -65,40 +94,109 @@ router.get("/", async function (req, res, next) {
   }
 });
 
-router.post("/sign-to-auth", async (req, res, next) => {
-  const publicKey = req.body.publicKey;
-  const signature = req.body.signature;
-  const signMessage = "sign";
+router.get("image/:id", async (req, res, next) => {
+  const publicKey = req.params["id"];
 
-  const verified = nacl.sign.detached.verify(
-    new TextEncoder().encode(signMessage),
-    bs58.decode(signature),
-    bs58.decode(publicKey)
-  );
+  const user = UserModel.findOne({
+    publicKey: publicKey,
+  });
 
-  if (verified) {
-    let newUser = UserModel.create({
-      publicKey: publicKey,
-      avatar: "temp-avatar",
-      name: req.body.name,
-      mail: req.body.mail,
-      phone: req.body.phone,
-    });
+  if (user) {
+    const getObjectParams = {
+      Bucket: BUCKET_NAME,
+      key: user.imageName,
+    };
 
-    let response = (await newUser).save();
-
-    res.json({
-      err: 0,
-      message: "Authorized",
-      newUser: response,
-    });
-  } else {
-    res.json({
-      err: 1,
-      message: "User cannot be verified",
-    });
+    const command = new GetObjectCommand(getObjectParams);
+    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    console.log(url);
   }
 });
+
+router.post("/send-image", upload.single("image"), async (req, res, next) => {
+  const file = req.file;
+
+  const buffer = await sharp(req.file.buffer)
+    .resize({
+      height: 1920,
+      width: 1080,
+      fit: "contain",
+    })
+    .toBuffer();
+
+  const params = {
+    Bucket: BUCKET_NAME,
+    Key: randomImageName(),
+    Body: buffer,
+    ContentType: req.file.mimetype,
+  };
+
+  const command = new PutObjectCommand(params);
+
+  const response = await s3.send(command);
+  console.log(response);
+});
+
+router.post(
+  "/sign-to-auth",
+  upload.single("profile_image"),
+  async (req, res, next) => {
+    console.log(req.body);
+    const publicKey = req.body.publicKey;
+    const signature = req.body.signature;
+    const signMessage = "sign";
+
+    const verified = nacl.sign.detached.verify(
+      new TextEncoder().encode(signMessage),
+      bs58.decode(signature),
+      bs58.decode(publicKey)
+    );
+
+    if (verified) {
+      const buffer = await sharp(req.file.buffer)
+        .resize({
+          height: 1920,
+          width: 1080,
+          fit: "cover",
+        })
+        .toBuffer();
+
+      const imageName = randomImageName();
+      const params = {
+        Bucket: BUCKET_NAME,
+        Key: imageName,
+        Body: buffer,
+        ContentType: req.file.mimetype,
+      };
+
+      const command = new PutObjectCommand(params);
+
+      const awsResponse = await s3.send(command);
+      console.log(awsResponse);
+
+      let newUser = UserModel.create({
+        publicKey: publicKey,
+        avatar: imageName,
+        name: req.body.name,
+        mail: req.body.mail,
+        phone: req.body.phone,
+      });
+
+      let saveResponse = (await newUser).save();
+
+      res.json({
+        err: 0,
+        message: "Authorized",
+        newUser: newUser,
+      });
+    } else {
+      res.json({
+        err: 1,
+        message: "User cannot be verified",
+      });
+    }
+  }
+);
 
 router.post("/update-user", async (req, res, next) => {
   const publicKey = req.body.publicKey;
@@ -180,15 +278,28 @@ router.get("/user-jwt-verify", verifyToken, async (req, res, next) => {
 });
 
 //check if user exists
-router.get("/:publicKey", async (req, res, next) => {
+router.get("/user/:publicKey", async (req, res, next) => {
   const publicKey = req.params["publicKey"];
   const user = await UserModel.findOne({
     publicKey: publicKey,
   });
   if (user) {
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: user.avatar,
+    };
+
+    const command = new GetObjectCommand(params);
+    const url = await getSignedUrl(s3, command, { expiresIn: 60 });
+    let userToSend = user;
+    userToSend.imageUrl = url;
+    console.log(userToSend);
     res.json({
       isExist: true,
-      user: user,
+      user: {
+        ...user,
+        imageUrl: url,
+      },
     });
   } else {
     res.json({

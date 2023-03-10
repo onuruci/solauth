@@ -16,17 +16,18 @@ import {
   Box,
   TextField,
   Switch,
+  IconButton,
 } from "@mui/material";
 
+import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import ImageIcon from "@mui/icons-material/Image";
 import WorkIcon from "@mui/icons-material/Work";
 import BeachAccessIcon from "@mui/icons-material/BeachAccess";
 import { useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
-import ENDPOINT from "../../utils/endpoint";
-
 import axios from "axios";
-import { color } from "@mui/system";
+
+import ENDPOINT from "../../utils/endpoint";
 
 function signInfoReducer(state, action) {
   switch (action.type) {
@@ -48,6 +49,10 @@ function signInfoReducer(state, action) {
         phone: action.nextPhone,
       };
     }
+    case "changed_image": {
+      console.log(action);
+      return { ...state, profile_image: action.nextImage };
+    }
   }
   throw Error("Unknown action: " + action.type);
 }
@@ -56,10 +61,13 @@ const Profile = () => {
   const { publicKey, connected, wallet, signMessage } = useWallet();
   const [editState, setEdit] = useState(false);
   const [user, setUser] = useState(null);
+  const [image, setImage] = useState(null);
+
   const [signInfo, signDispatch] = useReducer(signInfoReducer, {
     name: "",
     mail: "",
     phone: "",
+    profile_image: null,
   });
 
   const nameInputRef = useRef();
@@ -72,11 +80,14 @@ const Profile = () => {
 
   useEffect(() => {
     async function checkUser() {
-      let response = await axios.get(`${ENDPOINT}${publicKey}`);
+      let response = await axios.get(`${ENDPOINT}user/${publicKey}`);
       // check if user already signed
       // if user is signed, just set user
       if (response.data.isExist) {
-        setUser(response.data.user);
+        setUser({
+          ...response.data.user._doc,
+          imageUrl: response.data.user.imageUrl,
+        });
       }
       // if user is not signed, render a button that allows user to sign.
     }
@@ -95,7 +106,9 @@ const Profile = () => {
       signature: bs58.encode(signature),
       ...signInfo,
     };
-    let res = await axios.post(ENDPOINT + "sign-to-auth", form);
+    let res = await axios.post(ENDPOINT + "sign-to-auth", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     console.log(res.data);
   }
 
@@ -116,6 +129,16 @@ const Profile = () => {
     }
     setEdit(false);
   };
+
+  async function handleSubmitImage() {
+    console.log(image);
+    const formData = new FormData();
+    formData.append("image", image);
+    const response = await axios.post(`${ENDPOINT}send-image`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    console.log(response);
+  }
 
   return user ? (
     <code className="introstyle">
@@ -207,6 +230,7 @@ const Profile = () => {
               </ListItemAvatar>
               <ListItemText primary="Phone" secondary={user?.phone} />
             </ListItem>
+            <img src={user.imageUrl} />
           </List>
         </div>
       )}
@@ -247,6 +271,24 @@ const Profile = () => {
           label="Phone"
           variant="outlined"
         />
+        <IconButton
+          color="primary"
+          aria-label="upload picture"
+          component="label"
+        >
+          <input
+            onChange={(e) =>
+              signDispatch({
+                type: "changed_image",
+                nextImage: e.target.files[0],
+              })
+            }
+            hidden
+            accept="image/*"
+            type="file"
+          />
+          <PhotoCamera />
+        </IconButton>
         <Button
           type="submit"
           onClick={handleSignUp}
