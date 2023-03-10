@@ -64,7 +64,9 @@ const WalletHandler = ({ setCurrentProfile }) => {
 
   return (
     <div className="buttonlayout">
-      <WalletMultiButton></WalletMultiButton>
+      <WalletMultiButton>
+        Login with Solauth
+      </WalletMultiButton>
     </div>
   );
 };
