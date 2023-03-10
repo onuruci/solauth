@@ -84,6 +84,7 @@ function App() {
             <div className="flex flex-col space-y-2 mt-3 items-center justify-center pb-3 border-b-2">
               <p className="text-4xl font-bold">{currentProfile.name}</p>
               <p className="text-sm text-gray-500">{currentProfile.mail}</p>
+               <WalletHandler setCurrentProfile={setCurrentProfile} />
             </div>
             <div className="mt-1 flex items-center justify-center gap-12">
 

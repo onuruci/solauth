@@ -6,6 +6,7 @@ import axios from "axios";
 import { HASH, ENDPOINT } from "./utils/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
+import icon from "./utils/images/solauthicon.svg";
 
 const WalletHandler = ({ setCurrentProfile }) => {
   const { publicKey, connected, wallet, signMessage } = useWallet();
@@ -18,6 +19,12 @@ const WalletHandler = ({ setCurrentProfile }) => {
   }
 
   useEffect(() => {
+    if(!connected) {
+      setCurrentProfile(null);
+    }
+  }, [connected]);
+
+  useEffect(() => {
     async function userAuth() {
       const signature = await getSignature();
       let form = {
@@ -28,6 +35,7 @@ const WalletHandler = ({ setCurrentProfile }) => {
       const response = await axios.post(`${ENDPOINT}/user-auth`, form);
       console.log("response: ", response);
       localStorage.setItem(`jwt-${publicKey}`, response.data.token);
+      setCurrentProfile(response.data.newUser);
     }
 
     async function jwtVerify() {
@@ -64,9 +72,23 @@ const WalletHandler = ({ setCurrentProfile }) => {
 
   return (
     <div className="buttonlayout">
-      <WalletMultiButton>
-        Login with Solauth
-      </WalletMultiButton>
+         <WalletMultiButton
+          className="wallet-adapter-button-override"
+          startIcon={false}
+        >
+          <div>
+            <img className="solauth-icon" src={icon}/>
+          </div>
+          {
+            !connected ? 
+            <>
+            Login with Solauth
+            </> 
+            :
+            <>{publicKey.toString().slice(0,5) + ".." + publicKey.toString().slice(-4)}</>
+          }
+          
+        </WalletMultiButton>
     </div>
   );
 };
