@@ -198,32 +198,68 @@ router.post(
   }
 );
 
-router.post("/update-user", async (req, res, next) => {
-  const publicKey = req.body.publicKey;
-  const name = req.body.name;
-  const mail = req.body.mail;
-  const phone = req.body.phone;
-  const update = { name: name, mail: mail, phone: phone };
-
-  await UserModel.findOneAndUpdate(
-    {
+router.post(
+  "/update-user",
+  upload.single("profile_image"),
+  async (req, res, next) => {
+    const publicKey = req.body.publicKey;
+    const name = req.body.name;
+    const mail = req.body.mail;
+    const phone = req.body.phone;
+    const user = await UserModel.findOne({
       publicKey: publicKey,
-    },
-    update
-  );
+    });
 
-  res.json({
-    err: 0,
-    message: "Authorized",
-    newUser: {
-      publicKey: publicKey,
-      avatar: "asd",
-      name: name,
-      mail: mail,
-      phone: phone,
-    },
-  });
-});
+    if (user) {
+      const buffer = await sharp(req.file.buffer)
+        .resize({
+          height: 1920,
+          width: 1080,
+          fit: "contain",
+        })
+        .toBuffer();
+
+      const imageName = user.avatar;
+
+      const update = { name: name, mail: mail, phone: phone };
+      const params = {
+        Bucket: BUCKET_NAME,
+        Key: imageName,
+        Body: buffer,
+        ContentType: req.file.mimetype,
+      };
+
+      const command = new PutObjectCommand(params);
+
+      const awsResponse = await s3.send(command);
+      console.log(awsResponse);
+
+      await UserModel.findOneAndUpdate(
+        {
+          publicKey: publicKey,
+        },
+        update
+      );
+
+      res.json({
+        err: 0,
+        message: "Authorized",
+        newUser: {
+          publicKey: publicKey,
+          avatar: imageName,
+          name: name,
+          mail: mail,
+          phone: phone,
+        },
+      });
+    } else {
+      res.json({
+        err: 1,
+        message: "User cannot be found",
+      });
+    }
+  }
+);
 
 router.post("/user-auth", async (req, res, next) => {
   const publicKey = req.body.publicKey;
