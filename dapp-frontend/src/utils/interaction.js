@@ -11,19 +11,12 @@ import { deserialize, serialize } from "borsh";
 import * as Web3 from "@solana/web3.js";
 import { base58 } from "ethers/lib/utils";
 
-const RPC_URL = "https://api.avax-test.network/ext/bc/C/rpc";
-const SVG_ABI = require("./SVGABI.json");
-
-const svgAddress = "0xB19db005C446E59dE8726E06735C5e454956Cc89";
-
 export var svgContract;
 
 const network = "https://api.devnet.solana.com";
 const connection = new Connection(network);
 
 const programId = new PublicKey("2pt1iULn3KBsPqJ2NXg75xWSbj8awft3HFGK72VT8hUK");
-
-const isPhantomInstalled = window.phantom?.solana?.isPhantom;
 
 const getProvider = () => {
   if ("phantom" in window) {
@@ -275,7 +268,11 @@ export const withdrawFunds = async (programAddress, publicKey, amount) => {
   console.log("end sendMessage", result);
 };
 
-export const changeProgramOwner = async (publicKey, programAddress, newOwner) => {
+export const changeProgramOwner = async (
+  publicKey,
+  programAddress,
+  newOwner
+) => {
   let requestObject = new AdminChangeRequest({ newowner: newOwner });
   let data = serialize(AdminChangeRequest.schema, requestObject);
   let data_to_send = new Uint8Array([3, ...data]);
@@ -296,7 +293,7 @@ export const changeProgramOwner = async (publicKey, programAddress, newOwner) =>
   console.log("Signed changeProgramOwner");
   const result = await connection.confirmTransaction(signature);
   console.log("confirmed: ", result);
-}
+};
 
 export const changeWardens = async (address, warden1, warden2, warden3) => {
   const provider = getProvider();
@@ -378,9 +375,7 @@ class AdminChangeRequest {
       AdminChangeRequest,
       {
         kind: "struct",
-        fields: [
-          ["newowner", [32]],
-        ],
+        fields: [["newowner", [32]]],
       },
     ],
   ]);

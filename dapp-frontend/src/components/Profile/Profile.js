@@ -1,9 +1,6 @@
-import React, { useMemo, useRef, useState, useEffect, useReducer } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 
 import {
-  Input,
-  InputLabel,
-  FormHelperText,
   FormControl,
   List,
   ListItem,
@@ -16,136 +13,82 @@ import {
   Box,
   TextField,
   Switch,
-  IconButton,
 } from "@mui/material";
 
-import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import ImageIcon from "@mui/icons-material/Image";
 import WorkIcon from "@mui/icons-material/Work";
 import BeachAccessIcon from "@mui/icons-material/BeachAccess";
 import { useWallet } from "@solana/wallet-adapter-react";
-import bs58 from "bs58";
-import axios from "axios";
 
-import ENDPOINT from "../../utils/endpoint";
+import {
+  handleUpdateUser,
+  handleSignUp,
+  checkUser,
+} from "./api/profile-api-calls";
 
-function signInfoReducer(state, action) {
-  switch (action.type) {
-    case "changed_name": {
-      return {
-        ...state,
-        name: action.nextName,
-      };
-    }
-    case "changed_mail": {
-      return {
-        ...state,
-        mail: action.nextMail,
-      };
-    }
-    case "changed_phone": {
-      return {
-        ...state,
-        phone: action.nextPhone,
-      };
-    }
-    case "changed_image": {
-      console.log(action);
-      return { ...state, profile_image: action.nextImage };
-    }
-  }
-  throw Error("Unknown action: " + action.type);
-}
+import { ProfilePictureDropZone } from "./components/ProfilePictureUpload";
+import { userReducer } from "./utils/user-reducer";
 
 const Profile = () => {
-  const { publicKey, connected, wallet, signMessage } = useWallet();
+  const { publicKey, connected, signMessage } = useWallet();
   const [editState, setEdit] = useState(false);
   const [user, setUser] = useState(null);
-  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
 
-  const [signInfo, signDispatch] = useReducer(signInfoReducer, {
+  const [signInfo, signDispatch] = useReducer(userReducer, {
     name: "",
     mail: "",
     phone: "",
     profile_image: null,
   });
 
-  const nameInputRef = useRef();
-  const mailInputRef = useRef();
-  const phoneInputRef = useRef();
-  const imageInputRef = useRef();
+  const [editInfo, editDispatch] = useReducer(userReducer, {
+    name: "",
+    mail: "",
+    phone: "",
+    profile_image: null,
+  });
+
+  useEffect(() => {
+    // create the preview
+    let objectUrl;
+    const url = editInfo.profile_image
+      ? editInfo.profile_image
+      : signInfo.profile_image;
+    if (editInfo.profile_image || signInfo.profile_image) {
+      objectUrl = URL.createObjectURL(url);
+      setPreview(objectUrl);
+    }
+
+    // free memory when ever this component is unmounted
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [editInfo, signInfo]);
+
+  useEffect(() => {
+    console.log(user);
+    if (user) {
+      editDispatch({
+        type: "load",
+        nextUser: user,
+      });
+    }
+  }, [user]);
 
   const handleSwitch = () => {
+    setPreview(null);
     setEdit(!editState);
   };
 
   useEffect(() => {
-    async function checkUser() {
-      let response = await axios.get(`${ENDPOINT}user/${publicKey}`);
-      // check if user already signed
-      // if user is signed, just set user
-      if (response.data.isExist) {
-        setUser({
-          ...response.data.user._doc,
-          imageUrl: response.data.user.imageUrl,
-        });
-      }
-      // if user is not signed, render a button that allows user to sign.
-    }
+    // if user is not signed, render a button that allows user to sign.
     if (connected) {
-      checkUser();
+      checkUser(publicKey, setUser);
     }
   }, [publicKey]);
 
-  async function handleSignUp() {
-    const message = "sign";
-    const encodedMessage = new TextEncoder().encode(message);
-    const signature = await signMessage(encodedMessage);
-
-    let form = {
-      publicKey: publicKey.toBase58(),
-      signature: bs58.encode(signature),
-      ...signInfo,
-    };
-    let res = await axios.post(ENDPOINT + "sign-to-auth", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    console.log(res.data);
-  }
-
-  const handleUpdateUser = async () => {
-    const message = "sign";
-    const encodedMessage = new TextEncoder().encode(message);
-    const signature = await signMessage(encodedMessage);
-
-    // console.log(imageInputRef.current.files[0]);
-    let form = {
-      publicKey: publicKey.toBase58(),
-      signature: bs58.encode(signature),
-      name: nameInputRef.current.value,
-      mail: mailInputRef.current.value,
-      phone: phoneInputRef.current.value,
-      profile_image: imageInputRef.current.files[0],
-    };
-    await axios.post(ENDPOINT + "update-user", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    window.location.reload();
-  };
-
-  async function handleSubmitImage() {
-    console.log(image);
-    const formData = new FormData();
-    formData.append("image", image);
-    const response = await axios.post(`${ENDPOINT}send-image`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    console.log(response);
-  }
-
   return user ? (
     <code className="introstyle">
-      Profile
+      <h1 className="text-2xl font-semibold">Profile</h1>
       <div>
         <FormControlLabel
           control={<Switch onChange={() => handleSwitch()} />}
@@ -163,40 +106,59 @@ const Profile = () => {
             noValidate
             autoComplete="off"
           >
-            <TextField
-              id="outlined-required"
-              label="Name"
-              defaultValue={user?.name}
-              inputRef={nameInputRef}
-              type="text"
-            />
-            <TextField
-              id="outlined-required"
-              label="Mail"
-              inputRef={mailInputRef}
-              type="email"
-              defaultValue={user?.mail}
-            />
-            <TextField
-              id="outlined-required"
-              label="Phone"
-              defaultValue={user?.phone}
-              inputRef={phoneInputRef}
-              type="tel"
-            />
-            <IconButton
-              color="primary"
-              aria-label="upload picture"
-              component="label"
-            >
-              Profile Image
-              <input ref={imageInputRef} hidden accept="image/*" type="file" />
-              <PhotoCamera />
-            </IconButton>
+            <div className="flex flex-row items-center justify-between">
+              <div className="flex flex-col gap-4">
+                <TextField
+                  id="outlined-required"
+                  label="Name"
+                  defaultValue={user?.name}
+                  type="text"
+                  onChange={(e) =>
+                    editDispatch({
+                      type: "changed_name",
+                      nextName: e.target.value,
+                    })
+                  }
+                />
+                <TextField
+                  id="outlined-required"
+                  label="Mail"
+                  type="email"
+                  defaultValue={user?.mail}
+                  onChange={(e) =>
+                    editDispatch({
+                      type: "changed_mail",
+                      nextMail: e.target.value,
+                    })
+                  }
+                />
+                <TextField
+                  id="outlined-required"
+                  label="Phone"
+                  defaultValue={user?.phone}
+                  type="tel"
+                  onChange={(e) =>
+                    editDispatch({
+                      type: "changed_phone",
+                      nextPhone: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="flex flex-col items-center gap-8">
+                <h1 className="text-lg font-semibold">
+                  Upload Profile Image Below
+                </h1>
+                <ProfilePictureDropZone
+                  dispatch={editDispatch}
+                  preview={preview}
+                />
+              </div>
+            </div>
           </Box>
           <div>
             <Button
-              onClick={() => handleUpdateUser()}
+              onClick={() => handleUpdateUser(editInfo, publicKey)}
               sx={{
                 width: "100%",
                 marginTop: "2rem",
@@ -208,7 +170,7 @@ const Profile = () => {
           </div>
         </div>
       ) : (
-        <div>
+        <div className="flex flex-row gap-4 items-center justify-between">
           <List
             sx={{
               width: "100%",
@@ -242,8 +204,14 @@ const Profile = () => {
               </ListItemAvatar>
               <ListItemText primary="Phone" secondary={user?.phone} />
             </ListItem>
-            <img src={user.imageUrl} />
           </List>
+          <div className="flex flex-col items-center gap-6">
+            <h1 className="text-xl font-semibold">Profile Picture</h1>
+            <img
+              className="w-24 h-24 rounded-full border-2 border-blue-500"
+              src={user.imageUrl}
+            />
+          </div>
         </div>
       )}
     </code>
@@ -283,27 +251,10 @@ const Profile = () => {
           label="Phone"
           variant="outlined"
         />
-        <IconButton
-          color="primary"
-          aria-label="upload picture"
-          component="label"
-        >
-          <input
-            onChange={(e) =>
-              signDispatch({
-                type: "changed_image",
-                nextImage: e.target.files[0],
-              })
-            }
-            hidden
-            accept="image/*"
-            type="file"
-          />
-          <PhotoCamera />
-        </IconButton>
+        <ProfilePictureDropZone dispatch={signDispatch} preview={preview} />
         <Button
           type="submit"
-          onClick={handleSignUp}
+          onClick={() => handleSignUp(signInfo, publicKey, signMessage)}
           size="large"
           className="mt-80"
           variant="contained"
