@@ -73,6 +73,7 @@ const Profile = () => {
   const nameInputRef = useRef();
   const mailInputRef = useRef();
   const phoneInputRef = useRef();
+  const imageInputRef = useRef();
 
   const handleSwitch = () => {
     setEdit(!editState);
@@ -112,22 +113,24 @@ const Profile = () => {
     console.log(res.data);
   }
 
-  const handleChangeSubmit = async () => {
+  const handleUpdateUser = async () => {
     const message = "sign";
     const encodedMessage = new TextEncoder().encode(message);
     const signature = await signMessage(encodedMessage);
 
-    if (signature) {
-      let form = {
-        publicKey: publicKey.toBase58(),
-        signature: bs58.encode(signature),
-        name: nameInputRef.current.value,
-        mail: mailInputRef.current.value,
-        phone: phoneInputRef.current.value,
-      };
-      await axios.post(ENDPOINT + "update-user", form);
-    }
-    setEdit(false);
+    // console.log(imageInputRef.current.files[0]);
+    let form = {
+      publicKey: publicKey.toBase58(),
+      signature: bs58.encode(signature),
+      name: nameInputRef.current.value,
+      mail: mailInputRef.current.value,
+      phone: phoneInputRef.current.value,
+      profile_image: imageInputRef.current.files[0],
+    };
+    await axios.post(ENDPOINT + "update-user", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    window.location.reload();
   };
 
   async function handleSubmitImage() {
@@ -181,10 +184,19 @@ const Profile = () => {
               inputRef={phoneInputRef}
               type="tel"
             />
+            <IconButton
+              color="primary"
+              aria-label="upload picture"
+              component="label"
+            >
+              Profile Image
+              <input ref={imageInputRef} hidden accept="image/*" type="file" />
+              <PhotoCamera />
+            </IconButton>
           </Box>
           <div>
             <Button
-              onClick={() => handleChangeSubmit()}
+              onClick={() => handleUpdateUser()}
               sx={{
                 width: "100%",
                 marginTop: "2rem",
