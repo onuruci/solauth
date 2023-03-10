@@ -1,9 +1,7 @@
 import React from "react";
 
 import { HeaderWrapper } from "./ScHeader";
-import TabContainerHeader from "../TabContainerHeader";
 import LogoContainer from "../LogoContainer";
-import HamburgerMenu from "../HamburgerMenu";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import "@solana/wallet-adapter-react-ui/styles.css";
 

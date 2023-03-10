@@ -211,28 +211,30 @@ router.post(
     });
 
     if (user) {
-      const buffer = await sharp(req.file.buffer)
-        .resize({
-          height: 1920,
-          width: 1080,
-          fit: "contain",
-        })
-        .toBuffer();
-
       const imageName = user.avatar;
 
+      if (req.file) {
+        const buffer = await sharp(req.file.buffer)
+          .resize({
+            height: 1920,
+            width: 1080,
+            fit: "contain",
+          })
+          .toBuffer();
+        const params = {
+          Bucket: BUCKET_NAME,
+          Key: imageName,
+          Body: buffer,
+          ContentType: req.file.mimetype,
+        };
+
+        const command = new PutObjectCommand(params);
+
+        const awsResponse = await s3.send(command);
+        console.log(awsResponse);
+      }
+
       const update = { name: name, mail: mail, phone: phone };
-      const params = {
-        Bucket: BUCKET_NAME,
-        Key: imageName,
-        Body: buffer,
-        ContentType: req.file.mimetype,
-      };
-
-      const command = new PutObjectCommand(params);
-
-      const awsResponse = await s3.send(command);
-      console.log(awsResponse);
 
       await UserModel.findOneAndUpdate(
         {
@@ -349,7 +351,6 @@ router.get("/user/:publicKey", async (req, res, next) => {
 /// Let user application check with that JWT Token
 /// Build programs
 /// Add social recovery
-
 /// Add mongo db register users
 
 module.exports = router;
