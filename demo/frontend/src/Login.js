@@ -26,9 +26,7 @@ const Login = ({setCurrentProfile}) => {
                         <div className="login-btn-container">
                             <button className="login-btn">Log In</button>
                         </div>
-                        <WalletHandler setCurrentProfile={setCurrentProfile}>
-                          Login 
-                        </WalletHandler>
+                        <WalletHandler setCurrentProfile={setCurrentProfile} />
                    </form>
 
                    <div className="forgotten-password">

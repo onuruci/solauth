@@ -28,9 +28,22 @@ code {
 
 .buttonlayout {
   margin-top: 1rem;
+  width: fit-content;
   margin-left: auto;
   margin-right: auto;
-  width: 230px;
+}
+
+.wallet-adapter-button-override { 
+    background-color: #0B001C !important;
+    padding: 0 24px !important;
+    border: 3px solid !important;
+    border-image:linear-gradient(to right, #9945FF,#8752F3 ,#5497D5, #43B4CA, #28E0B9, #19FB9B ) 2 !important;    
+}
+
+.solauth-icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 16px;
 }
 
 @tailwind base;
