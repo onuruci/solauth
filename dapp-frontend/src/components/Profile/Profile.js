@@ -25,7 +25,7 @@ import {
   handleSignUp,
   checkUser,
   logInUser,
-  getUser
+  getUser,
 } from "./api/profile-api-calls";
 
 import { ProfilePictureDropZone } from "./components/ProfilePictureUpload";
@@ -81,7 +81,7 @@ const Profile = () => {
     setPreview(null);
     setEdit(!editState);
   };
-  
+
   const handleLogOut = () => {
     localStorage.removeItem("jwt-solauth");
     window.location.reload();
@@ -97,14 +97,13 @@ const Profile = () => {
     };
 
     const getUserIfJWT = async () => {
-      if(connected) {
+      if (connected) {
         getUser(publicKey, setUser);
       }
     };
 
     signMessageAndChechUser();
     getUserIfJWT();
-    
   }, [publicKey]);
 
   return user ? (
@@ -192,50 +191,50 @@ const Profile = () => {
         </div>
       ) : (
         <>
-        <div className="flex flex-row gap-4 items-center justify-between">
-          <List
-            sx={{
-              width: "100%",
-              maxWidth: 360,
-              bgcolor: "background.paper",
-            }}
-          >
-            <ListItem>
-              <ListItemAvatar>
-                <Avatar>
-                  <ImageIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary="Name" secondary={user?.name} />
-            </ListItem>
-            <Divider variant="inset" component="li" />
-            <ListItem>
-              <ListItemAvatar>
-                <Avatar>
-                  <WorkIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary="Mail" secondary={user?.mail} />
-            </ListItem>
-            <Divider variant="inset" component="li" />
-            <ListItem>
-              <ListItemAvatar>
-                <Avatar>
-                  <BeachAccessIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary="Phone" secondary={user?.phone} />
-            </ListItem>
-          </List>
-          <div className="flex flex-col items-center gap-6">
-            <h1 className="text-xl font-semibold">Profile Picture</h1>
-            <img
-              className="w-24 h-24 rounded-full border-2 border-blue-500"
-              src={user.imageUrl}
-            />
+          <div className="flex flex-row gap-4 items-center justify-between">
+            <List
+              sx={{
+                width: "100%",
+                maxWidth: 360,
+                bgcolor: "background.paper",
+              }}
+            >
+              <ListItem>
+                <ListItemAvatar>
+                  <Avatar>
+                    <ImageIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary="Name" secondary={user?.name} />
+              </ListItem>
+              <Divider variant="inset" component="li" />
+              <ListItem>
+                <ListItemAvatar>
+                  <Avatar>
+                    <WorkIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary="Mail" secondary={user?.mail} />
+              </ListItem>
+              <Divider variant="inset" component="li" />
+              <ListItem>
+                <ListItemAvatar>
+                  <Avatar>
+                    <BeachAccessIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary="Phone" secondary={user?.phone} />
+              </ListItem>
+            </List>
+            <div className="flex flex-col items-center gap-6">
+              <h1 className="text-xl font-semibold">Profile Picture</h1>
+              <img
+                className="w-24 h-24 rounded-full border-2 border-blue-500"
+                src={user.imageUrl}
+              />
+            </div>
           </div>
-        </div>
-        <Button
+          <Button
             type="submit"
             onClick={() => handleLogOut()}
             size="large"
@@ -284,18 +283,17 @@ const Profile = () => {
           variant="outlined"
         />
         <ProfilePictureDropZone dispatch={signDispatch} preview={preview} />
-        {
-          userExist ? 
+        {userExist ? (
           <Button
             type="submit"
-            onClick={() => logInUser(publicKey, setUser ,signMessage)}
+            onClick={() => logInUser(publicKey, setUser, signMessage)}
             size="large"
             className="mt-80"
             variant="contained"
           >
             Log In
           </Button>
-          :
+        ) : (
           <Button
             type="submit"
             onClick={() => handleSignUp(signInfo, publicKey, signMessage)}
@@ -305,8 +303,7 @@ const Profile = () => {
           >
             Sign to Solauth
           </Button>
-        }
-        
+        )}
       </FormControl>
     </div>
   );
