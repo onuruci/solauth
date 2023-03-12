@@ -191,50 +191,55 @@ const Profile = () => {
         </div>
       ) : (
         <>
-          <div className="flex flex-row gap-4 items-center justify-between">
-            <List
-              sx={{
-                width: "100%",
-                maxWidth: 360,
-                bgcolor: "background.paper",
-              }}
-            >
-              <ListItem>
-                <ListItemAvatar>
-                  <Avatar>
-                    <ImageIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary="Name" secondary={user?.name} />
-              </ListItem>
-              <Divider variant="inset" component="li" />
-              <ListItem>
-                <ListItemAvatar>
-                  <Avatar>
-                    <WorkIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary="Mail" secondary={user?.mail} />
-              </ListItem>
-              <Divider variant="inset" component="li" />
-              <ListItem>
-                <ListItemAvatar>
-                  <Avatar>
-                    <BeachAccessIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary="Phone" secondary={user?.phone} />
-              </ListItem>
-            </List>
-            <div className="flex flex-col items-center gap-6">
-              <h1 className="text-xl font-semibold">Profile Picture</h1>
-              <img
-                className="w-24 h-24 rounded-full border-2 border-blue-500"
-                src={user.imageUrl}
-              />
-            </div>
+        <div className="flex flex-row gap-4 items-center justify-between">
+          <List
+            sx={{
+              width: "100%",
+              maxWidth: 360,
+              bgcolor: "background.paper",
+            }}
+          >
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar>
+                  <ImageIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary="Name" secondary={user?.name} />
+            </ListItem>
+            <Divider variant="inset" component="li" />
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar>
+                  <WorkIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary="Mail" secondary={user?.mail} />
+            </ListItem>
+            <Divider variant="inset" component="li" />
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar>
+                  <BeachAccessIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary="Phone" secondary={user?.phone} />
+            </ListItem>
+          </List>
+          <div className="flex flex-col items-center gap-6">
+            <h1 className="text-xl font-semibold">Profile Picture</h1>
+            <div 
+            className="w-48 h-48 rounded-full border-2 border-blue-500" 
+            style={{ 
+              backgroundImage:`url(${user.imageUrl})`, 
+              backgroundPositionX:"center", 
+              backgroundPositionY:"center", 
+              backgroundSize:"200px auto", 
+              backgroundRepeat:"no-repeat" 
+            }}/>
           </div>
-          <Button
+          </div>
+           <Button
             type="submit"
             onClick={() => handleLogOut()}
             size="large"

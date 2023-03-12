@@ -195,6 +195,8 @@ router.post(
     const mail = req.body.mail;
     const phone = req.body.phone;
 
+    console.log("NAME:  ", req.body.name);
+
     jwt.verify(req.token, SECRET_KEY, async (err, authData) => {
       if (!err) {
         const user = await UserModel.findOne({

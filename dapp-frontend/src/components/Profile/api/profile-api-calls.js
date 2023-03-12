@@ -22,15 +22,17 @@ export async function handleSignUp(signInfo, publicKey, signMessage) {
 
 export const handleUpdateUser = async (editInfo, publicKey) => {
   console.log("edit info: ", editInfo);
+   const jwt  = localStorage.getItem("jwt-solauth");
+  console.log("JWT:  ", jwt);
+  const config = {
+    headers: { "Content-Type": "multipart/form-data",
+    authorization: `Bearer ${jwt}` }
+  };
   let form = {
     publicKey: publicKey.toBase58(),
     ...editInfo,
   };
-  await axios.post(ENDPOINT + "update-user", form, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  await axios.post(ENDPOINT + "update-user", form, config);
   window.location.reload();
 };
 
