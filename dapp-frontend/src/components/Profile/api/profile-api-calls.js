@@ -22,11 +22,13 @@ export async function handleSignUp(signInfo, publicKey, signMessage) {
 
 export const handleUpdateUser = async (editInfo, publicKey) => {
   console.log("edit info: ", editInfo);
-   const jwt  = localStorage.getItem("jwt-solauth");
+  const jwt = localStorage.getItem("jwt-solauth");
   console.log("JWT:  ", jwt);
   const config = {
-    headers: { "Content-Type": "multipart/form-data",
-    authorization: `Bearer ${jwt}` }
+    headers: {
+      "Content-Type": "multipart/form-data",
+      authorization: `Bearer ${jwt}`,
+    },
   };
   let form = {
     publicKey: publicKey.toBase58(),

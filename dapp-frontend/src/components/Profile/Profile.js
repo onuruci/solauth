@@ -191,55 +191,56 @@ const Profile = () => {
         </div>
       ) : (
         <>
-        <div className="flex flex-row gap-4 items-center justify-between">
-          <List
-            sx={{
-              width: "100%",
-              maxWidth: 360,
-              bgcolor: "background.paper",
-            }}
-          >
-            <ListItem>
-              <ListItemAvatar>
-                <Avatar>
-                  <ImageIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary="Name" secondary={user?.name} />
-            </ListItem>
-            <Divider variant="inset" component="li" />
-            <ListItem>
-              <ListItemAvatar>
-                <Avatar>
-                  <WorkIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary="Mail" secondary={user?.mail} />
-            </ListItem>
-            <Divider variant="inset" component="li" />
-            <ListItem>
-              <ListItemAvatar>
-                <Avatar>
-                  <BeachAccessIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary="Phone" secondary={user?.phone} />
-            </ListItem>
-          </List>
-          <div className="flex flex-col items-center gap-6">
-            <h1 className="text-xl font-semibold">Profile Picture</h1>
-            <div 
-            className="w-48 h-48 rounded-full border-2 border-blue-500" 
-            style={{ 
-              backgroundImage:`url(${user.imageUrl})`, 
-              backgroundPositionX:"center", 
-              backgroundPositionY:"center", 
-              backgroundSize:"200px auto", 
-              backgroundRepeat:"no-repeat" 
-            }}/>
+          <div className="flex flex-row gap-4 items-center justify-between">
+            <List
+              sx={{
+                width: "100%",
+                maxWidth: 360,
+                bgcolor: "background.paper",
+              }}
+            >
+              <ListItem>
+                <ListItemAvatar>
+                  <Avatar>
+                    <ImageIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary="Name" secondary={user?.name} />
+              </ListItem>
+              <Divider variant="inset" component="li" />
+              <ListItem>
+                <ListItemAvatar>
+                  <Avatar>
+                    <WorkIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary="Mail" secondary={user?.mail} />
+              </ListItem>
+              <Divider variant="inset" component="li" />
+              <ListItem>
+                <ListItemAvatar>
+                  <Avatar>
+                    <BeachAccessIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary="Phone" secondary={user?.phone} />
+              </ListItem>
+            </List>
+            <div className="flex flex-col items-center gap-6">
+              <h1 className="text-xl font-semibold">Profile Picture</h1>
+              <div
+                className="w-48 h-48 rounded-full border-2 border-blue-500"
+                style={{
+                  backgroundImage: `url(${user.imageUrl})`,
+                  backgroundPositionX: "center",
+                  backgroundPositionY: "center",
+                  backgroundSize: "200px auto",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+            </div>
           </div>
-          </div>
-           <Button
+          <Button
             type="submit"
             onClick={() => handleLogOut()}
             size="large"
@@ -252,65 +253,67 @@ const Profile = () => {
       )}
     </code>
   ) : (
-    <div className="flex flex-row items-center justify-center">
-      <FormControl className="flex flex-col gap-4">
-        <TextField
-          onChange={(e) =>
-            signDispatch({
-              type: "changed_name",
-              nextName: e.target.value,
-            })
-          }
-          id="sign-name"
-          label="Name"
-          variant="outlined"
-        />
-        <TextField
-          onChange={(e) =>
-            signDispatch({
-              type: "changed_mail",
-              nextMail: e.target.value,
-            })
-          }
-          id="sign-mail"
-          label="Mail"
-          variant="outlined"
-        />
-        <TextField
-          onChange={(e) =>
-            signDispatch({
-              type: "changed_phone",
-              nextPhone: e.target.value,
-            })
-          }
-          id="sign-phone"
-          label="Phone"
-          variant="outlined"
-        />
-        <ProfilePictureDropZone dispatch={signDispatch} preview={preview} />
-        {userExist ? (
-          <Button
-            type="submit"
-            onClick={() => logInUser(publicKey, setUser, signMessage)}
-            size="large"
-            className="mt-80"
-            variant="contained"
-          >
-            Log In
-          </Button>
-        ) : (
-          <Button
-            type="submit"
-            onClick={() => handleSignUp(signInfo, publicKey, signMessage)}
-            size="large"
-            className="mt-80"
-            variant="contained"
-          >
-            Sign to Solauth
-          </Button>
-        )}
-      </FormControl>
-    </div>
+    <>
+      {!userExist ? (
+        <div className="flex flex-row items-center justify-center">
+          <FormControl className="flex flex-col gap-4">
+            <TextField
+              onChange={(e) =>
+                signDispatch({
+                  type: "changed_name",
+                  nextName: e.target.value,
+                })
+              }
+              id="sign-name"
+              label="Name"
+              variant="outlined"
+            />
+            <TextField
+              onChange={(e) =>
+                signDispatch({
+                  type: "changed_mail",
+                  nextMail: e.target.value,
+                })
+              }
+              id="sign-mail"
+              label="Mail"
+              variant="outlined"
+            />
+            <TextField
+              onChange={(e) =>
+                signDispatch({
+                  type: "changed_phone",
+                  nextPhone: e.target.value,
+                })
+              }
+              id="sign-phone"
+              label="Phone"
+              variant="outlined"
+            />
+            <ProfilePictureDropZone dispatch={signDispatch} preview={preview} />
+            <Button
+              type="submit"
+              onClick={() => handleSignUp(signInfo, publicKey, signMessage)}
+              size="large"
+              className="mt-80"
+              variant="contained"
+            >
+              Sign to Solauth
+            </Button>
+          </FormControl>
+        </div>
+      ) : (
+        <Button
+          type="submit"
+          onClick={() => logInUser(publicKey, setUser, signMessage)}
+          size="large"
+          className="mt-80"
+          variant="contained"
+        >
+          Log In
+        </Button>
+      )}
+    </>
   );
 };
 
