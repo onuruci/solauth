@@ -66,33 +66,15 @@ const verifyToken = (req, res, next) => {
 };
 
 /* GET home page. */
+
 router.get("/", async function (req, res, next) {
-  const publicKey = req.body.publicKey;
-  const signature = req.body.signature;
-  const signMessage = "sign";
-
-  const retrievedAddress = ethers.utils.recoverAddress(
-    hashMessage(signMessage),
-    signature
-  );
-
-  let collection = await db.collection("posts");
-  let results = await collection.find({}).limit(50).toArray();
-
-  console.log("RES: ", results);
-
-  if (retrievedAddress === publicKey) {
-    res.json({
-      err: 0,
-      message: "Authorized",
-    });
-  } else {
-    res.json({
-      err: 1,
-      message: "Wrong",
-    });
-  }
+  res.json({
+    err: 0,
+    message: "Authorized",
+  });
 });
+
+/// Image functionality is there a need for authentication ??
 
 router.get("image/:id", async (req, res, next) => {
   const publicKey = req.params["id"];
@@ -136,6 +118,8 @@ router.post("/send-image", upload.single("image"), async (req, res, next) => {
   const response = await s3.send(command);
   console.log(response);
 });
+
+/// User profile generate on our platform
 
 router.post(
   "/sign-to-auth",
@@ -198,70 +182,88 @@ router.post(
   }
 );
 
+/// User profile update
+/// Check user signature or JWT
+
 router.post(
   "/update-user",
+  verifyToken,
   upload.single("profile_image"),
   async (req, res, next) => {
     const publicKey = req.body.publicKey;
     const name = req.body.name;
     const mail = req.body.mail;
     const phone = req.body.phone;
-    const user = await UserModel.findOne({
-      publicKey: publicKey,
-    });
 
-    if (user) {
-      const imageName = user.avatar;
+    jwt.verify(req.token, SECRET_KEY, async (err, authData) => {
+      if (!err) {
+        const user = await UserModel.findOne({
+          publicKey: publicKey,
+        });
 
-      if (req.file) {
-        const buffer = await sharp(req.file.buffer)
-          .resize({
-            height: 1920,
-            width: 1080,
-            fit: "contain",
-          })
-          .toBuffer();
-        const params = {
-          Bucket: BUCKET_NAME,
-          Key: imageName,
-          Body: buffer,
-          ContentType: req.file.mimetype,
-        };
+        if (user) {
+          const imageName = user.avatar;
 
-        const command = new PutObjectCommand(params);
+          if (req.file) {
+            const buffer = await sharp(req.file.buffer)
+              .resize({
+                height: 1920,
+                width: 1080,
+                fit: "contain",
+              })
+              .toBuffer();
+            const params = {
+              Bucket: BUCKET_NAME,
+              Key: imageName,
+              Body: buffer,
+              ContentType: req.file.mimetype,
+            };
 
-        const awsResponse = await s3.send(command);
-        console.log(awsResponse);
+            const command = new PutObjectCommand(params);
+
+            const awsResponse = await s3.send(command);
+            console.log(awsResponse);
+          }
+
+          const update = { name: name, mail: mail, phone: phone };
+
+          await UserModel.findOneAndUpdate(
+            {
+              publicKey: publicKey,
+            },
+            update
+          );
+
+          res.json({
+            err: 0,
+            message: "Authorized",
+            newUser: {
+              publicKey: publicKey,
+              avatar: imageName,
+              name: name,
+              mail: mail,
+              phone: phone,
+            },
+          });
+        } else {
+          res.json({
+            err: 1,
+            message: "User cannot be found",
+          });
+        }
+      } else {
+        res.json({
+          error: 1,
+          message: "JWT is expired",
+        });
       }
-
-      const update = { name: name, mail: mail, phone: phone };
-
-      await UserModel.findOneAndUpdate(
-        {
-          publicKey: publicKey,
-        },
-        update
-      );
-
-      res.json({
-        err: 0,
-        message: "Authorized",
-        newUser: {
-          publicKey: publicKey,
-          avatar: imageName,
-          name: name,
-          mail: mail,
-          phone: phone,
-        },
-      });
-    } else {
-      res.json({
-        err: 1,
-        message: "User cannot be found",
-      });
-    }
+    });
   }
 );
+
+/// Endpoint for applcations to use and sign-in users
+/// Checks signature signs-in the user with returning a JWT Token
+/// This JWT Token will later be used for authenticating thus no more need for signature
 
 router.post("/user-auth", async (req, res, next) => {
   const publicKey = req.body.publicKey;
@@ -275,18 +277,37 @@ router.post("/user-auth", async (req, res, next) => {
   );
 
   if (verified) {
-    var foundUser = await UserModel.findOne({
+    var user = await UserModel.findOne({
       publicKey: publicKey,
     });
 
-    const token = generateAccessToken({ foundUser });
+    if (user) {
+      const params = {
+        Bucket: BUCKET_NAME,
+        Key: user.avatar,
+      };
 
-    res.json({
-      err: 0,
-      message: "Authorized",
-      newUser: foundUser,
-      token: token,
-    });
+      const token = generateAccessToken({ user });
+
+      const command = new GetObjectCommand(params);
+      const url = await getSignedUrl(s3, command, { expiresIn: 60 });
+      let userToSend = user;
+      userToSend.imageUrl = url;
+      console.log(userToSend);
+      res.json({
+        isExist: true,
+        user: {
+          ...user,
+          imageUrl: url,
+        },
+        token: token,
+      });
+    } else {
+      res.json({
+        err: 1,
+        message: "User not found",
+      });
+    }
   } else {
     res.json({
       err: 1,
@@ -294,6 +315,9 @@ router.post("/user-auth", async (req, res, next) => {
     });
   }
 });
+
+/// This enpoint is for applciations to reach and keeps users signed-in with verifying their tokens
+/// Without making them sign everything
 
 router.get("/user-jwt-verify", verifyToken, async (req, res, next) => {
   console.log("welcome to the world");
@@ -315,29 +339,63 @@ router.get("/user-jwt-verify", verifyToken, async (req, res, next) => {
   });
 });
 
-//check if user exists
-router.get("/user/:publicKey", async (req, res, next) => {
-  const publicKey = req.params["publicKey"];
+// check if user exists
+// First JWT should be verified
+
+router.post("/user", verifyToken, async (req, res, next) => {
+  jwt.verify(req.token, SECRET_KEY, async (err, authData) => {
+    if (!err) {
+      const publicKey = req.body.publicKey;
+      const user = await UserModel.findOne({
+        publicKey: publicKey,
+      });
+
+      console.log("USER: ");
+      if (user) {
+        console.log("USER FOUND");
+        const params = {
+          Bucket: BUCKET_NAME,
+          Key: user.avatar,
+        };
+
+        const command = new GetObjectCommand(params);
+        const url = await getSignedUrl(s3, command, { expiresIn: 60 });
+        let userToSend = user;
+        userToSend.imageUrl = url;
+        console.log(userToSend);
+        res.json({
+          isExist: true,
+          user: {
+            ...user,
+            imageUrl: url,
+          },
+        });
+      } else {
+        res.json({
+          isExist: false,
+        });
+      }
+    } else {
+      console.log("ERR");
+      res.json({
+        err: 1,
+        message: "Authentication failed",
+      });
+    }
+  });
+});
+
+router.post("/check-user", async (req, res, next) => {
+  const publicKey = req.body.publicKey;
   const user = await UserModel.findOne({
     publicKey: publicKey,
   });
-  if (user) {
-    const params = {
-      Bucket: BUCKET_NAME,
-      Key: user.avatar,
-    };
 
-    const command = new GetObjectCommand(params);
-    const url = await getSignedUrl(s3, command, { expiresIn: 60 });
-    let userToSend = user;
-    userToSend.imageUrl = url;
-    console.log(userToSend);
+  console.log(publicKey);
+
+  if (user) {
     res.json({
       isExist: true,
-      user: {
-        ...user,
-        imageUrl: url,
-      },
     });
   } else {
     res.json({
@@ -346,11 +404,8 @@ router.get("/user/:publicKey", async (req, res, next) => {
   }
 });
 
-/// Add normal application authentication
-/// Return JWT Token
-/// Let user application check with that JWT Token
-/// Build programs
-/// Add social recovery
-/// Add mongo db register users
+// Add required functionality for authentication
+
+// Get signature message from the platform, thus they can generate customized messages
 
 module.exports = router;
