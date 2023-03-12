@@ -1,3 +1,3 @@
-const ENDPOINT = "http://localhost:3000/";
+const ENDPOINT = "https://solauth.herokuapp.com/";
 
 export default ENDPOINT;
