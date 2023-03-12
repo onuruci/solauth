@@ -13,6 +13,7 @@ import {
   Box,
   TextField,
   Switch,
+  Alert,
 } from "@mui/material";
 
 import ImageIcon from "@mui/icons-material/Image";
@@ -255,63 +256,71 @@ const Profile = () => {
   ) : (
     <>
       {!userExist ? (
-        <div className="flex flex-row items-center justify-center">
-          <FormControl className="flex flex-col gap-4">
-            <TextField
-              onChange={(e) =>
-                signDispatch({
-                  type: "changed_name",
-                  nextName: e.target.value,
-                })
-              }
-              id="sign-name"
-              label="Name"
-              variant="outlined"
-            />
-            <TextField
-              onChange={(e) =>
-                signDispatch({
-                  type: "changed_mail",
-                  nextMail: e.target.value,
-                })
-              }
-              id="sign-mail"
-              label="Mail"
-              variant="outlined"
-            />
-            <TextField
-              onChange={(e) =>
-                signDispatch({
-                  type: "changed_phone",
-                  nextPhone: e.target.value,
-                })
-              }
-              id="sign-phone"
-              label="Phone"
-              variant="outlined"
-            />
-            <ProfilePictureDropZone dispatch={signDispatch} preview={preview} />
-            <Button
-              type="submit"
-              onClick={() => handleSignUp(signInfo, publicKey, signMessage)}
-              size="large"
-              className="mt-80"
-              variant="contained"
-            >
-              Sign to Solauth
-            </Button>
-          </FormControl>
-        </div>
+        <>
+          <div className="flex flex-row items-center justify-center">
+            <FormControl className="flex flex-col gap-4">
+              <TextField
+                onChange={(e) =>
+                  signDispatch({
+                    type: "changed_name",
+                    nextName: e.target.value,
+                  })
+                }
+                id="sign-name"
+                label="Name"
+                variant="outlined"
+                required
+              />
+              <TextField
+                onChange={(e) =>
+                  signDispatch({
+                    type: "changed_mail",
+                    nextMail: e.target.value,
+                  })
+                }
+                id="sign-mail"
+                label="Mail"
+                variant="outlined"
+              />
+              <TextField
+                onChange={(e) =>
+                  signDispatch({
+                    type: "changed_phone",
+                    nextPhone: e.target.value,
+                  })
+                }
+                id="sign-phone"
+                label="Phone"
+                variant="outlined"
+              />
+              <ProfilePictureDropZone
+                dispatch={signDispatch}
+                preview={preview}
+              />
+              <Button
+                type="submit"
+                onClick={() => handleSignUp(signInfo, publicKey, signMessage)}
+                size="large"
+                className="mt-80"
+                variant="contained"
+              >
+                Generate a Solana Profile
+              </Button>
+            </FormControl>
+          </div>
+        </>
       ) : (
-        <Button
-          type="submit"
-          onClick={() => logInUser(publicKey, setUser, signMessage)}
-          size="large"
-          className="mt-80"
-          variant="contained"
-        >
-          Log In
-        </Button>
+        <div className="flex flex-row items-center justify-center">
+          <Button
+            type="submit"
+            onClick={() => logInUser(publicKey, setUser, signMessage)}
+            size="large"
+            className="mt-80"
+            variant="contained"
+          >
+            Log In To Your Profile
+          </Button>
+        </div>
       )}
     </>
   );
