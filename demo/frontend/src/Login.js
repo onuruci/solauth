@@ -10,9 +10,9 @@ const Login = ({setCurrentProfile}) => {
         <div className="content">
            <div className="left-content">
                <div className="f-logo">
-                   <img src="https://static.xx.fbcdn.net/rsrc.php/y8/r/dF5SId3UHWd.svg" alt="Facelook" />
+                   <img src="https://static.xx.fbcdn.net/rsrc.php/y8/r/dF5SId3UHWd.svg" alt="Facebook" />
                </div>
-               <h2 className="f-quote">Facelook helps you connect and share with the people in your life.</h2>
+               <h2 className="f-quote">Facebook helps you connect and share with the people in your life.</h2>
            </div>
            <div className="right-content">
                <div className="card">
@@ -61,12 +61,12 @@ const Login = ({setCurrentProfile}) => {
             <li><a href="">Sign Up</a></li>
             <li><a href="">Log In</a></li>
             <li><a href="">Messenger</a></li>
-            <li><a href="">Facelook Lite</a></li>
+            <li><a href="">Facebook Lite</a></li>
             <li><a href="">Watch</a></li>
             <li><a href="">Places</a></li>
             <li><a href="">Games</a></li>
             <li><a href="">Marketplace</a></li>
-            <li><a href="">Facelook Pay</a></li>
+            <li><a href="">Facebook Pay</a></li>
             <li><a href="">Jobs</a></li>
             <li><a href="">Oculus</a></li>
             <li><a href="">Portal</a></li>

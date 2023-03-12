@@ -24,6 +24,8 @@ import {
   handleUpdateUser,
   handleSignUp,
   checkUser,
+  logInUser,
+  getUser
 } from "./api/profile-api-calls";
 
 import { ProfilePictureDropZone } from "./components/ProfilePictureUpload";
@@ -34,6 +36,7 @@ const Profile = () => {
   const [editState, setEdit] = useState(false);
   const [user, setUser] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [userExist, setUserExist] = useState(false);
 
   const [signInfo, signDispatch] = useReducer(userReducer, {
     name: "",
@@ -78,12 +81,30 @@ const Profile = () => {
     setPreview(null);
     setEdit(!editState);
   };
+  
+  const handleLogOut = () => {
+    localStorage.removeItem("jwt-solauth");
+    window.location.reload();
+  };
 
   useEffect(() => {
     // if user is not signed, render a button that allows user to sign.
-    if (connected) {
-      checkUser(publicKey, setUser);
-    }
+    // User should not reach values withour signing messages
+    const signMessageAndChechUser = async () => {
+      if (connected) {
+        checkUser(publicKey, setUserExist, signMessage);
+      }
+    };
+
+    const getUserIfJWT = async () => {
+      if(connected) {
+        getUser(publicKey, setUser);
+      }
+    };
+
+    signMessageAndChechUser();
+    getUserIfJWT();
+    
   }, [publicKey]);
 
   return user ? (
@@ -170,6 +191,7 @@ const Profile = () => {
           </div>
         </div>
       ) : (
+        <>
         <div className="flex flex-row gap-4 items-center justify-between">
           <List
             sx={{
@@ -213,6 +235,16 @@ const Profile = () => {
             />
           </div>
         </div>
+        <Button
+            type="submit"
+            onClick={() => handleLogOut()}
+            size="large"
+            className="mt-80"
+            variant="contained"
+          >
+            Log Out
+          </Button>
+        </>
       )}
     </code>
   ) : (
@@ -252,15 +284,29 @@ const Profile = () => {
           variant="outlined"
         />
         <ProfilePictureDropZone dispatch={signDispatch} preview={preview} />
-        <Button
-          type="submit"
-          onClick={() => handleSignUp(signInfo, publicKey, signMessage)}
-          size="large"
-          className="mt-80"
-          variant="contained"
-        >
-          Sign to Solauth
-        </Button>
+        {
+          userExist ? 
+          <Button
+            type="submit"
+            onClick={() => logInUser(publicKey, setUser ,signMessage)}
+            size="large"
+            className="mt-80"
+            variant="contained"
+          >
+            Log In
+          </Button>
+          :
+          <Button
+            type="submit"
+            onClick={() => handleSignUp(signInfo, publicKey, signMessage)}
+            size="large"
+            className="mt-80"
+            variant="contained"
+          >
+            Sign to Solauth
+          </Button>
+        }
+        
       </FormControl>
     </div>
   );
