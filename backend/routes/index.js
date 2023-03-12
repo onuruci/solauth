@@ -137,26 +137,30 @@ router.post(
     );
 
     if (verified) {
-      const buffer = await sharp(req.file.buffer)
-        .resize({
-          height: 1920,
-          width: 1080,
-          fit: "cover",
-        })
-        .toBuffer();
-
       const imageName = randomImageName();
-      const params = {
-        Bucket: BUCKET_NAME,
-        Key: imageName,
-        Body: buffer,
-        ContentType: req.file.mimetype,
-      };
 
-      const command = new PutObjectCommand(params);
+      if (req.file) {
+        const buffer = await sharp(req.file.buffer)
+          .resize({
+            height: 1920,
+            width: 1080,
+            fit: "cover",
+          })
+          .toBuffer();
 
-      const awsResponse = await s3.send(command);
-      console.log(awsResponse);
+        const params = {
+          Bucket: BUCKET_NAME,
+          Key: imageName,
+          Body: buffer,
+          ContentType: req.file.mimetype,
+        };
+
+        const command = new PutObjectCommand(params);
+
+        const awsResponse = await s3.send(command);
+
+        console.log(awsResponse);
+      }
 
       let newUser = UserModel.create({
         publicKey: publicKey,
