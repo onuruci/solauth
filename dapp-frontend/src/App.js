@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Header from "./components/Header";
-import logoImg from "./common/solauth_logo.png";
+import logoImg from "../src/utils/WhatsApp_Image_2023-03-13_at_16.35.07-removebg-preview.png";
 import PropTypes from "prop-types";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
