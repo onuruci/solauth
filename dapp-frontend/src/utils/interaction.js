@@ -132,7 +132,7 @@ export async function createCampaign(publicKey) {
   ]);
   const signature = await signAndSendTransaction(transact);
   const result = await connection.confirmTransaction(signature);
-  console.log("end sendMessage", result);
+  window.location.reload();
 }
 
 export async function getAllWardens(connection, publicKey) {
