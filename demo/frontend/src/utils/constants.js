@@ -1,3 +1,3 @@
-export const ENDPOINT = "https://solauth.herokuapp.com";
+export const ENDPOINT = "http://localhost:3000";
 
 export const HASH = "sign";

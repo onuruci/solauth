@@ -17,6 +17,7 @@ const {
   GetObjectCommand,
   PutObjectCommand,
 } = require("@aws-sdk/client-s3");
+const user = require("../models/user");
 
 dotenv.config();
 
@@ -288,6 +289,7 @@ router.post("/user-auth", async (req, res, next) => {
     });
 
     if (user) {
+      console.log(user);
       const params = {
         Bucket: BUCKET_NAME,
         Key: user.avatar,
@@ -326,9 +328,9 @@ router.post("/user-auth", async (req, res, next) => {
 /// Without making them sign everything
 
 router.get("/user-jwt-verify", verifyToken, async (req, res, next) => {
-  console.log("welcome to the world");
-  jwt.verify(req.token, SECRET_KEY, (err, authData) => {
+  jwt.verify(req.token, SECRET_KEY, async (err, authData) => {
     console.log("auth data: ", authData);
+
     if (err) {
       console.error(err);
       res.json({
@@ -336,9 +338,19 @@ router.get("/user-jwt-verify", verifyToken, async (req, res, next) => {
         message: "JWT is expired",
       });
     } else {
+      console.log(authData);
+      const params = {
+        Bucket: BUCKET_NAME,
+        Key: authData.user.avatar,
+      };
+
+      const command = new GetObjectCommand(params);
+      const url = await getSignedUrl(s3, command, { expiresIn: 60 });
+      console.log("url: ", url);
       res.json({
         message: "Succesfull",
         authData: authData,
+        imageUrl: url,
         error: 0,
       });
     }

@@ -19,7 +19,7 @@ const WalletHandler = ({ setCurrentProfile }) => {
   }
 
   useEffect(() => {
-    if(!connected) {
+    if (!connected) {
       setCurrentProfile(null);
     }
   }, [connected]);
@@ -35,7 +35,10 @@ const WalletHandler = ({ setCurrentProfile }) => {
       const response = await axios.post(`${ENDPOINT}/user-auth`, form);
       console.log("response: ", response);
       localStorage.setItem(`jwt-${publicKey}`, response.data.token);
-      setCurrentProfile(response.data.newUser);
+      setCurrentProfile({
+        ...response.data.user._doc,
+        imageUrl: response.data.user.imageUrl,
+      });
     }
 
     async function jwtVerify() {
@@ -48,8 +51,10 @@ const WalletHandler = ({ setCurrentProfile }) => {
         return;
       }
       console.log("verify response: ", response);
-      setCurrentProfile(response.data.authData.foundUser);
-      console.log(response.data.authData.foundUser);
+      setCurrentProfile({
+        ...response.data.authData.user,
+        imageUrl: response.data.imageUrl,
+      });
     }
 
     if (!connected) {
@@ -72,23 +77,23 @@ const WalletHandler = ({ setCurrentProfile }) => {
 
   return (
     <div className="buttonlayout">
-         <WalletMultiButton
-          className="wallet-adapter-button-override"
-          startIcon={false}
-        >
-          <div>
-            <img className="solauth-icon" src={icon}/>
-          </div>
-          {
-            !connected ? 
-            <>
-            Login with Solauth
-            </> 
-            :
-            <>{publicKey.toString().slice(0,5) + ".." + publicKey.toString().slice(-4)}</>
-          }
-          
-        </WalletMultiButton>
+      <WalletMultiButton
+        className="wallet-adapter-button-override"
+        startIcon={false}
+      >
+        <div>
+          <img className="solauth-icon" src={icon} />
+        </div>
+        {!connected ? (
+          <>Login with Solauth</>
+        ) : (
+          <>
+            {publicKey.toString().slice(0, 5) +
+              ".." +
+              publicKey.toString().slice(-4)}
+          </>
+        )}
+      </WalletMultiButton>
     </div>
   );
 };
