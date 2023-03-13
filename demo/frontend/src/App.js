@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useEffect, useContext, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import {
   ConnectionProvider,
@@ -12,13 +12,7 @@ import "@solana/wallet-adapter-react-ui/styles.css";
 import bg from "./utils/images/ubuntu_background.jpg";
 import WalletHandler from "./WalletHandler";
 import "./index.css";
-import fb from "./utils/images/fb.png";
-import input1 from "./utils/images/input.png";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { ENDPOINT } from "./utils/constants";
 import Login from "./Login";
-import axios from "axios";
-import { Link } from "react-router-dom";
 
 global.Buffer = global.Buffer || require("buffer").Buffer;
 
