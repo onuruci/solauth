@@ -229,15 +229,9 @@ const Profile = () => {
             </List>
             <div className="flex flex-col items-center gap-6">
               <h1 className="text-xl font-semibold">Profile Picture</h1>
-              <div
-                className="w-48 h-48 rounded-full border-2 border-blue-500"
-                style={{
-                  backgroundImage: `url(${user.imageUrl})`,
-                  backgroundPositionX: "center",
-                  backgroundPositionY: "center",
-                  backgroundSize: "200px auto",
-                  backgroundRepeat: "no-repeat",
-                }}
+              <img
+                className="w-48 h-48 rounded-full border-2 border-blue-500 object-cover bg-black"
+                src={user.imageUrl}
               />
             </div>
           </div>
