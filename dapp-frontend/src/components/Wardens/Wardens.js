@@ -58,7 +58,7 @@ const Wardens = () => {
         bs58.decode(warden2Ref.current.value),
         bs58.decode(warden3Ref.current.value)
       );
-      window.location.reload(true);
+      window.location.reload();
     };
 
     useEffect(() => {
@@ -70,7 +70,6 @@ const Wardens = () => {
           if (res.length > 0) {
             let wallet = res[0];
             setAbstractWallet(wallet);
-            console.log("Balance:  ", wallet.balance.toString());
             setBalance(wallet.balance.toString());
             setPdaAddress(wallet.pubId);
           }
@@ -98,7 +97,7 @@ const Wardens = () => {
                   variant="contained"
                   onClick={() => handleAddLamports()}
                 >
-                  Add Lamports
+                  Add Funds
                 </Button>
               </div>
               <div className="flex flex-row gap-4">
@@ -112,7 +111,7 @@ const Wardens = () => {
                   variant="contained"
                   onClick={() => handleWithdraw()}
                 >
-                  withdrawFunds
+                  Withdraw Funds
                 </Button>
               </div>
             </div>
