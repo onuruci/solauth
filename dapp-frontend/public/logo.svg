@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1000" height="1000" viewBox="0 0 1000 1000" xml:space="preserve">
+<desc>Created with Fabric.js 3.5.0</desc>
+<defs>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="rgba(255,255,255,0)"/>
+<g transform="matrix(1.2697 0 0 1.2697 499.5023 499.5039)" id="2265">
+<linearGradient id="SVGID_7" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1 0 0 1 0 0)" x1="0" y1="358" x2="418.97" y2="358">
+<stop offset="8%" style="stop-color:rgb(153,69,255);stop-opacity: 1"/>
+<stop offset="30%" style="stop-color:rgb(135,82,243);stop-opacity: 1"/>
+<stop offset="50%" style="stop-color:rgb(84,151,213);stop-opacity: 1"/>
+<stop offset="60%" style="stop-color:rgb(67,180,202);stop-opacity: 1"/>
+<stop offset="72%" style="stop-color:rgb(40,224,185);stop-opacity: 1"/>
+<stop offset="97%" style="stop-color:rgb(25,251,155);stop-opacity: 1"/>
+</linearGradient>
+<path style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; is-custom-font: none; font-file-url: none; fill: url(#SVGID_7); fill-rule: nonzero; opacity: 1;" vector-effect="non-scaling-stroke" transform=" translate(-209.465, -358.0025)" d="M 0 206.5 c 1.5 88.67 45 148.78 103.45 180.34 V 611.26 A 104.74 104.74 0 0 0 208.19 716 h 0 A 104.74 104.74 0 0 0 312.93 611.26 v -223 c 59.74 -31.18 104.5 -91.74 106 -181.71 C 414.31 -68.81 4.7 -68.86 0 206.5 Z m 314.3 52.87 a 3.8 3.8 0 0 1 -1 2 l -34.2 35.73 a 7.8 7.8 0 0 1 -2.64 1.82 a 8.2 8.2 0 0 1 -3.17 0.64 H 111.17 a 4 4 0 0 1 -2.18 -0.64 a 3.92 3.92 0 0 1 -1.46 -1.69 a 3.79 3.79 0 0 1 0.74 -4.18 l 34.22 -35.73 a 8 8 0 0 1 2.63 -1.81 a 8.38 8.38 0 0 1 3.16 -0.65 H 310.39 a 4 4 0 0 1 2.17 0.64 a 3.88 3.88 0 0 1 1.47 1.69 A 3.78 3.78 0 0 1 314.3 259.37 Z M 314 229.31 a 3.88 3.88 0 0 1 -1.47 1.69 a 4 4 0 0 1 -2.17 0.64 H 148.28 a 8.08 8.08 0 0 1 -5.79 -2.46 l -34.22 -35.73 a 3.79 3.79 0 0 1 -0.74 -4.18 a 3.92 3.92 0 0 1 1.46 -1.69 a 4 4 0 0 1 2.18 -0.64 H 273.28 a 8.2 8.2 0 0 1 3.17 0.64 a 8.1 8.1 0 0 1 2.64 1.82 l 34.2 35.73 a 3.79 3.79 0 0 1 0.74 4.18 Z m 0.27 -105.74 a 3.8 3.8 0 0 1 -1 2 l -34.2 35.73 a 8 8 0 0 1 -2.64 1.82 a 8.2 8.2 0 0 1 -3.17 0.64 H 111.17 a 4 4 0 0 1 -2.17 -0.64 a 3.8 3.8 0 0 1 -1.46 -1.69 a 3.7 3.7 0 0 1 -0.27 -2.2 a 3.8 3.8 0 0 1 1 -2 l 34.21 -35.73 a 8 8 0 0 1 2.63 -1.81 a 8.38 8.38 0 0 1 3.16 -0.65 H 310.39 a 4 4 0 0 1 2.17 0.64 a 3.88 3.88 0 0 1 1.47 1.69 A 3.78 3.78 0 0 1 314.3 123.57 Z" stroke-linecap="round"/>
+</g>
+</svg>
